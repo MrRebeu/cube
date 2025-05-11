@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/11 19:21:23 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/11 17:38:30 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ typedef struct s_map
     int     height;     // Hauteur de la carte en cellules
     t_img   floor_texture;
     t_img   wall_texture;
-    t_img   door_texture;
     t_img   arm_1;      // Image de l'arme
     int     x_player;   // Position X du joueur
     int     y_player;   // Position Y du joueur
@@ -124,7 +123,6 @@ typedef struct s_render
     // Dimensions du mur
     double corrected_dist;
     int wall_height;
-    int door_height;
     int draw_start;
     int draw_end;
     
@@ -185,10 +183,6 @@ void init_player(t_player *player);
 int	key_press(int keycode, t_player *player);
 int	key_release(int keycode, t_player *player);
 
-int render_next_frame(t_game *game);
-void render_scene(t_game *game);
-void render_ui(t_game *game);
-int loop_game(t_game *game);
-void	render_door(t_game *game, int column_x, t_render *r);
+
 
 #endif

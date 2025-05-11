@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/11 18:49:03 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/11 18:01:01 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,8 @@ int	main(int argc, char **argv)
 		game.rays[i].distance = ray_casting(&game, radiant_angle);
 		i++;
 	}
-    loop_game(&game);
-
+	mlx_hook(game.mlx, 2, 1L << 0, key_press, &game.player);
+	render_frame(&game);
+	mlx_loop(game.mlx);
 	return (0);
 }

@@ -19,7 +19,6 @@ int init_game(t_game *game, char *map_file)
                                         &game->screen.line_length, &game->screen.endian);
     if (!read_map(map_file, game))
         return (0);
-    //
     game->map.wall_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./wall.xpm", &width, &height);
     if (!game->map.wall_texture.ptr)
         return (0);
@@ -29,7 +28,6 @@ int init_game(t_game *game, char *map_file)
                                                   &game->map.wall_texture.bits_per_pixel,
                                                   &game->map.wall_texture.line_length,
                                                   &game->map.wall_texture.endian);
-    //
     game->map.floor_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./floor.xpm", &width, &height);
     if (!game->map.floor_texture.ptr)
         return (0);
@@ -48,17 +46,6 @@ int init_game(t_game *game, char *map_file)
                                             &game->weapons[0].bits_per_pixel,
                                             &game->weapons[0].line_length,
                                             &game->weapons[0].endian);
-    game->map.door_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./door.xpm", &width, &height);
-    if (!game->map.door_texture.ptr)
-        return (0);
-    game->map.door_texture.width = width;
-    game->map.door_texture.height = height;
-    game->map.door_texture.addr = mlx_get_data_addr(game->map.door_texture.ptr,
-                                                  &game->map.door_texture.bits_per_pixel,
-                                                  &game->map.door_texture.line_length,
-                                                  &game->map.door_texture.endian);
-    
-    
     game->player.x = 100;
     game->player.y = 100;
     game->player.angle = 0;

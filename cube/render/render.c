@@ -19,7 +19,6 @@ void	render_column(t_game *game, int column_x, t_ray *ray)
 	render_sky(game, column_x, &r);
 	render_wall(game, column_x, &r);
 	render_floor(game, column_x, &r, ray);
-	render_door(game,column_x, &r, ray);
 }
 void render_frame(t_game *game)
 {

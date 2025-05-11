@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Werror -I$(MLX_DIR)
 MLX_DIR = ./minilibx-linux
 LDFLAGS = -L$(MLX_DIR) -lmlx_Linux -lXext -lX11 -lm
 
-SRCS = main.c cube3d.c utils.c map.c  move_player.c game_loop.c
+SRCS = main.c cube3d.c utils.c map.c  move_player.c
 RENDER_SRC = render/render.c render/render_env.c
 GNL_SRC = gnl/get_next_line.c gnl/get_next_line_utils.c init_game.c
 

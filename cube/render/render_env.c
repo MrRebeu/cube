@@ -68,30 +68,6 @@ void	render_wall(t_game *game, int column_x, t_render *r)
 	}
 }
 
-void	render_door(t_game *game, int column_x, t_render *r)
-{
-		r->tex_x = column_x % TILE_SIZE;
-	r->y = r->draw_start;
-	while (r->y <= r->draw_end)
-	{
-		r->tex_y = (r->y - r->draw_start) * TILE_SIZE / r->door_height;
-		if (r->tex_x >= 0 && r->tex_x < TILE_SIZE && r->tex_y >= 0
-			&& r->tex_y < TILE_SIZE && game->map.door_texture.addr != NULL)
-		{
-			r->tex_addr = game->map.door_texture.addr + (r->tex_y
-					* game->map.door_texture.line_length + r->tex_x
-					* (game->map.door_texture.bits_per_pixel / 8));
-			r->color = *(unsigned int *)(r->tex_addr);
-		}
-		else
-			r->color = 0x654321;
-		r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
-				+ column_x * (game->screen.bits_per_pixel / 8));
-		*(unsigned int *)(r->screen_pixel) = r->color;
-		r->y++;
-	}
-}
-
 void	render_floor(t_game *game, int column_x, t_render *r, t_ray *ray)
 {
 	unsigned int	base_color;
