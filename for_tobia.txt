@@ -1,0 +1,33 @@
+La Tecnica del Ray Casting Planare per il Rendering del Pavimento
+Concetto di Ray Casting Planare
+Il Ray Casting Planare è una tecnica fondamentale utilizzata nei motori grafici 3D per renderizzare superfici orizzontali come pavimenti e soffitti. A differenza dei muri, che sono perpendicolari alla vista dell'osservatore, il pavimento si estende orizzontalmente davanti a noi, richiedendo quindi un approccio diverso per una corretta visualizzazione prospettica.
+Elementi Chiave dell'Implementazione
+1. Calcolo della Distanza in Base alla Posizione Verticale
+La formula row_distance = (DISPLAY_HEIGHT / 2.0) / (y - DISPLAY_HEIGHT / 2.0) è fondamentale. Essa calcola la distanza "reale" di un punto sul pavimento in funzione della sua posizione verticale sullo schermo. Più ci si avvicina all'orizzonte (centro dello schermo), più la distanza aumenta rapidamente, creando l'effetto prospettico.
+2. Proiezione delle Coordinate sul Piano del Pavimento
+Le equazioni:
+floor_x = player.x + row_distance * cos(angolo_raggio) / 4.0
+floor_y = player.y + row_distance * sin(angolo_raggio) / 4.0
+calcolano le coordinate esatte del punto sul pavimento rappresentato dal pixel sullo schermo. La divisione per 4.0 è un fattore di scala che determina la "dimensione" apparente della texture.
+3. Mappatura della Texture
+La conversione:
+texture_x = ((int)(floor_x * TILE_SIZE)) % TILE_SIZE
+texture_y = ((int)(floor_y * TILE_SIZE)) % TILE_SIZE
+trasforma le coordinate del mondo in coordinate di texture, con un modulo per ripetere la texture su tutto il pavimento.
+4. Effetto di Profondità con Oscuramento
+L'equazione dim_factor = 1.0 - fmin(1.0, row_distance / 15.0) crea un fattore di oscuramento che diminuisce con la distanza. Il valore 15.0 determina a quale distanza il pavimento diventa completamente nero, aggiungendo realismo alla scena.
+5. Applicazione dell'Oscuramento al Colore
+Il processo:
+r = ((colore_base >> 16) & 0xFF) * dim_factor
+g = ((colore_base >> 8) & 0xFF) * dim_factor
+b = (colore_base & 0xFF) * dim_factor
+colore_finale = (r << 16) | (g << 8) | b
+estrae le componenti rossa, verde e blu del colore, le moltiplica per il fattore di oscuramento e ricostruisce il colore finale.
+Vantaggi di Questa Tecnica
+
+Prospettiva Corretta: La relazione non lineare tra posizione verticale sullo schermo e distanza reale crea una prospettiva naturale.
+Continuità Visiva: Ogni pixel del pavimento viene calcolato in base alla sua posizione nel mondo 3D, creando una prospettiva coerente e fluida.
+Percezione di Profondità: L'oscuramento progressivo fornisce un'indicazione visiva della distanza, migliorando la percezione tridimensionale.
+Efficienza Computazionale: Questo metodo è relativamente efficiente poiché evita calcoli complessi per ogni pixel.
+
+Questa tecnica è stata uno degli elementi chiave che ha reso i primi giochi 3D come Doom e Wolfenstein così immersivi, nonostante le limitazioni tecniche dell'epoca.
