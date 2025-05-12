@@ -6,7 +6,7 @@
 /*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/12 17:24:40 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/12 17:37:26 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void	render_wall(t_game *game, int column_x, t_render *r)
 					+ column_x * (game->screen.bits_per_pixel / 8));
 			*(unsigned int *)(r->screen_pixel) = r->color;
 		}
-		texture_pos += step;
+		texture_pos = texture_pos + step;
 		r->y++;
 	}
 }
