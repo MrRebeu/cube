@@ -6,7 +6,7 @@
 /*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/12 15:29:37 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/12 17:12:57 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,15 @@ int	is_not_wall(t_map *map, double x, double y)
 		return (1);
 }
 
+double	normalize_angle(double angle)
+{
+	while (angle < 0)
+		angle = angle + (2 * M_PI);
+	while (angle >= 2 * M_PI)
+		angle = angle - (2 * M_PI);
+	return (angle);
+}
+
 double	ray_casting(t_game *game, double radiant_angle)
 {
 	t_intersect	v;
@@ -83,6 +92,7 @@ double	ray_casting(t_game *game, double radiant_angle)
 	double		dist_v;
 	double		dist_h;
 
+	radiant_angle = normalize_angle(radiant_angle);
 	v = v_intersection(game->player.x, game->player.y, radiant_angle);
 	h = h_intersection(game->player.x, game->player.y, radiant_angle);
 	while (is_not_wall(&game->map, v.x, v.y))
@@ -95,10 +105,8 @@ double	ray_casting(t_game *game, double radiant_angle)
 		h.x = h.x + h.step_x;
 		h.y = h.y + h.step_y;
 	}
-	dist_v = sqrt((v.x - game->player.x) * (v.x - game->player.x) + (v.y
-				- game->player.y) * (v.y - game->player.y));
-	dist_h = sqrt((h.x - game->player.x) * (h.x - game->player.x) + (h.y
-				- game->player.y) * (h.y - game->player.y));
+	dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));
+	dist_h = sqrt(pow(h.x - game->player.x, 2) + pow(h.y - game->player.y, 2));
 	return (fmin(dist_v, dist_h));
 }
 
@@ -106,9 +114,12 @@ double	no_fish_eye(double min_distance, double radiant_angle,
 		double player_angle)
 {
 	double	corrected_dist;
+	double	angle_diff;
 
+	angle_diff = radiant_angle - player_angle;
+	angle_diff = normalize_angle(angle_diff);
 	// calcola la distanza perpendicolare
-	corrected_dist = min_distance * cos(radiant_angle - player_angle);
+	corrected_dist = min_distance * cos(angle_diff);
 	return (corrected_dist);
 }
 int	calc_wall_height(double corrected_dist)
@@ -116,8 +127,8 @@ int	calc_wall_height(double corrected_dist)
 	double	distance_to_projection_plane;
 	double	wall_height;
 
-	// calcola l'altezza del muro in funzione della distanza
-	distance_to_projection_plane = (DISPLAY_WIDTH / 2) / tan(FOV / 2);
-	wall_height = (TILE_SIZE / corrected_dist) * distance_to_projection_plane;
+	distance_to_projection_plane = (DISPLAY_WIDTH / 2.0) / tan(FOV / 2.0);
+	wall_height = (TILE_SIZE / fmax(corrected_dist, 1))
+		* distance_to_projection_plane;
 	return ((int)wall_height);
 }
