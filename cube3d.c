@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/10 23:42:13 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/12 15:29:37 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,35 +76,31 @@ int	is_not_wall(t_map *map, double x, double y)
 		return (1);
 }
 
-double ray_casting(t_game *game, double radiant_angle)
+double	ray_casting(t_game *game, double radiant_angle)
 {
-    t_intersect v;
-    t_intersect h;
-    double      dist_v;
-    double      dist_h;
+	t_intersect	v;
+	t_intersect	h;
+	double		dist_v;
+	double		dist_h;
 
-    v = v_intersection(game->player.x, game->player.y, radiant_angle);
-    h = h_intersection(game->player.x, game->player.y, radiant_angle);
-    while (is_not_wall(&game->map, v.x, v.y))
-    {
-        v.x = v.x + v.step_x;
-        v.y = v.y + v.step_y;
-    }
-    while (is_not_wall(&game->map, h.x, h.y))
-    {
-        h.x = h.x + h.step_x;
-        h.y = h.y + h.step_y;
-    }
-    dist_v = sqrt((v.x - game->player.x) * (v.x - game->player.x) + 
-                  (v.y - game->player.y) * (v.y - game->player.y));
-    dist_h = sqrt((h.x - game->player.x) * (h.x - game->player.x) + 
-                  (h.y - game->player.y) * (h.y - game->player.y));
-    if (dist_v < dist_h)
-        return (dist_v);
-    else
-        return (dist_h);
+	v = v_intersection(game->player.x, game->player.y, radiant_angle);
+	h = h_intersection(game->player.x, game->player.y, radiant_angle);
+	while (is_not_wall(&game->map, v.x, v.y))
+	{
+		v.x = v.x + v.step_x;
+		v.y = v.y + v.step_y;
+	}
+	while (is_not_wall(&game->map, h.x, h.y))
+	{
+		h.x = h.x + h.step_x;
+		h.y = h.y + h.step_y;
+	}
+	dist_v = sqrt((v.x - game->player.x) * (v.x - game->player.x) + (v.y
+				- game->player.y) * (v.y - game->player.y));
+	dist_h = sqrt((h.x - game->player.x) * (h.x - game->player.x) + (h.y
+				- game->player.y) * (h.y - game->player.y));
+	return (fmin(dist_v, dist_h));
 }
-
 
 double	no_fish_eye(double min_distance, double radiant_angle,
 		double player_angle)
