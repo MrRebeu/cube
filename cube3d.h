@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/14 21:27:33 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/14 23:35:41 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 # include <unistd.h>
 
 # ifndef M_PI
-# define M_PI 3.14159265358979323846
+#  define M_PI 3.14159265358979323846
 # endif
 
 # define W 119
@@ -103,10 +103,10 @@ typedef struct s_ray
 	double			radiant_angle;
 	double			player_angle;
 	double			distance;
-    double wall_hit_x;
-	double wall_hit_y;
-	int hit_vertical;
-	char hit_type;
+	double			wall_hit_x;
+	double			wall_hit_y;
+	int				hit_vertical;
+	char			hit_type;
 }					t_ray;
 
 typedef struct s_game
@@ -154,7 +154,7 @@ typedef struct s_render
 
 	// Pixel
 	char			*screen_pixel;
-    int texture_offset_y;
+	int				texture_offset_y;
 }					t_render;
 
 t_intersect			v_intersection(int x_player, int y_player,
@@ -170,7 +170,8 @@ double				no_fish_eye(double min_distance, double radiant_angle,
 
 void				render_column(t_game *game, int column_x, t_ray *ray);
 void				render_frame(t_game *game);
-double				ray_casting(t_game *game, double radiant_angle, int column_x);
+double				ray_casting(t_game *game, double radiant_angle,
+						int column_x);
 
 int					set_player_pos(t_game *game);
 int					read_map(char *file_path, t_game *game);
@@ -182,21 +183,24 @@ int					validate_map(t_map *map);
 int					init_game(t_game *game, char *map_file);
 
 // render
-void render_wall(t_game *game, int column_x, t_render *r, t_ray *ray);
+void				render_wall(t_game *game, int column_x, t_render *r,
+						t_ray *ray);
 void				render_floor(t_game *game, int column_x, t_render *r,
 						t_ray *ray);
 void				render_sky(t_game *game, int column_x, t_render *r);
 void				render_weapon(t_game *game);
-void				move_player(t_player *player);
+void				move_player(t_game *game);
 void				init_player(t_player *player);
-int					key_press(int keycode, t_player *player);
-int					key_release(int keycode, t_player *player);
+int					key_press(int keycode, t_game *game);
+int					key_release(int keycode, t_game *game);
 
 int					render_next_frame(t_game *game);
 void				render_scene(t_game *game);
 void				render_ui(t_game *game);
 int					loop_game(t_game *game);
-void render_door(t_game *game, int column_x, t_render *r, t_ray *ray);
+void				render_door(t_game *game, int column_x, t_render *r,
+						t_ray *ray);
 double				normalize_angle(double angle);
+void				update_rays(t_game *game);
 
 #endif
