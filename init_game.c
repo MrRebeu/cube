@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   init_game.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/12 17:43:47 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/14 20:55:12 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,14 +67,17 @@ int	init_game(t_game *game, char *map_file)
 	game->map.door_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./door.xpm",
 			&width, &height);
 	if (!game->map.door_texture.ptr)
+	{
+		printf("problem avec door.xpm");
 		return (0);
+	}
 	game->map.door_texture.width = width;
 	game->map.door_texture.height = height;
 	game->map.door_texture.addr = mlx_get_data_addr(game->map.door_texture.ptr,
 			&game->map.door_texture.bits_per_pixel,
 			&game->map.door_texture.line_length,
 			&game->map.door_texture.endian);
-	game->player.x = 100;
+	game->player.x = 0;
 	game->player.y = 100;
 	game->player.angle = 0;
 	game->player.fov = FOV;

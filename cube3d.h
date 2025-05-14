@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/12 17:23:40 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/14 21:27:33 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,7 @@ typedef struct s_ray
     double wall_hit_x;
 	double wall_hit_y;
 	int hit_vertical;
+	char hit_type;
 }					t_ray;
 
 typedef struct s_game
@@ -169,7 +170,7 @@ double				no_fish_eye(double min_distance, double radiant_angle,
 
 void				render_column(t_game *game, int column_x, t_ray *ray);
 void				render_frame(t_game *game);
-double				ray_casting(t_game *game, double radiant_angle);
+double				ray_casting(t_game *game, double radiant_angle, int column_x);
 
 int					set_player_pos(t_game *game);
 int					read_map(char *file_path, t_game *game);
@@ -181,7 +182,7 @@ int					validate_map(t_map *map);
 int					init_game(t_game *game, char *map_file);
 
 // render
-void				render_wall(t_game *game, int column_x, t_render *r);
+void render_wall(t_game *game, int column_x, t_render *r, t_ray *ray);
 void				render_floor(t_game *game, int column_x, t_render *r,
 						t_ray *ray);
 void				render_sky(t_game *game, int column_x, t_render *r);
@@ -195,7 +196,7 @@ int					render_next_frame(t_game *game);
 void				render_scene(t_game *game);
 void				render_ui(t_game *game);
 int					loop_game(t_game *game);
-void				render_door(t_game *game, int column_x, t_render *r);
+void render_door(t_game *game, int column_x, t_render *r, t_ray *ray);
 double				normalize_angle(double angle);
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/12 17:23:44 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/14 21:28:27 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@ void	render_column(t_game *game, int column_x, t_ray *ray)
 	r.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle,
 			ray->player_angle);
 	r.wall_height = calc_wall_height(r.corrected_dist);
+	r.door_height = (int)(r.wall_height * 1.3);
+
 	r.draw_start = (DISPLAY_HEIGHT / 2) - (r.wall_height / 2);
 	r.draw_end = (DISPLAY_HEIGHT / 2) + (r.wall_height / 2);
 	// Calcola offset nella texture se il muro è troppo alto
@@ -31,11 +33,14 @@ void	render_column(t_game *game, int column_x, t_ray *ray)
 		r.draw_start = 0;
 	if (r.draw_end >= DISPLAY_HEIGHT)
 		r.draw_end = DISPLAY_HEIGHT - 1;
-	// Rendu des différentes parties de la colonne
-	render_sky(game, column_x, &r);
-	render_wall(game, column_x, &r);
-	render_floor(game, column_x, &r, ray);
-	// render_door(game,column_x, &r, ray);
+    render_sky(game, column_x, &r);
+    // Choisir la fonction de rendu en fonction du type d'élément touché
+    if (ray->hit_type == 'D')
+        render_door(game, column_x, &r, ray);
+    else // '1' ou autre
+        render_wall(game, column_x, &r, ray);
+    // Rendu du sol
+    render_floor(game, column_x, &r, ray);
 }
 void	render_frame(t_game *game)
 {
@@ -50,3 +55,5 @@ void	render_frame(t_game *game)
 	mlx_put_image_to_window(game->mlx, game->win, game->screen.ptr, 0, 0);
 	render_weapon(game);
 }
+
+

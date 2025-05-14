@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/11 18:49:03 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/14 20:24:55 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ int	main(int argc, char **argv)
 			radiant_angle -= 2 * M_PI;
 		game.rays[i].radiant_angle = radiant_angle;
 		game.rays[i].player_angle = game.player.angle;
-		game.rays[i].distance = ray_casting(&game, radiant_angle);
+		game.rays[i].distance = ray_casting(&game, radiant_angle, i);
 		i++;
 	}
     loop_game(&game);
