@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/15 16:55:21 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/15 17:10:59 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,138 +39,153 @@
 
 void render_weapon(t_game *game)
 {
-    t_render r;
+    t_render renderer;
     t_img *weapon;
     char *dst;
     
     weapon = &game->weapons[game->current_weapon];
-    r.x = (DISPLAY_WIDTH - weapon->width) - 50;  // position x de l'arme
-    r.y = (DISPLAY_HEIGHT - weapon->height) + 250;  // position y de l'arme
-    r.tex_y = 0;
-    while (r.tex_y < weapon->height)
+    renderer.x = (DISPLAY_WIDTH - weapon->width) - 50;  // Weapon X position
+    renderer.y = (DISPLAY_HEIGHT - weapon->height) + 250;  // Weapon Y position
+    
+    /* Draw weapon image pixel by pixel */
+    renderer.tex_y = 0;
+    while (renderer.tex_y < weapon->height)
     {
-        if (r.y + r.tex_y >= 0 && r.y + r.tex_y < DISPLAY_HEIGHT)
+        if (renderer.y + renderer.tex_y >= 0 && renderer.y + renderer.tex_y < DISPLAY_HEIGHT)
         {
-            r.tex_x = 0;
-            while (r.tex_x < weapon->width)
+            renderer.tex_x = 0;
+            while (renderer.tex_x < weapon->width)
             {
-                if (r.x + r.tex_x >= 0 && r.x + r.tex_x < DISPLAY_WIDTH)
+                if (renderer.x + renderer.tex_x >= 0 && renderer.x + renderer.tex_x < DISPLAY_WIDTH)
                 {
-                    r.tex_addr = weapon->addr + (r.tex_y * weapon->line_length + 
-                                r.tex_x * (weapon->bits_per_pixel / 8));
-                    r.color = *(unsigned int*)r.tex_addr;
-                    r.r = (r.color >> 16) & 0xFF;
-                    r.g = (r.color >> 8) & 0xFF;
-                    r.b = r.color & 0xFF;
-                    if (!(r.r < 10 && r.g < 10 && r.b < 10))
+                    /* Get weapon texture pixel */
+                    renderer.tex_addr = weapon->addr + (renderer.tex_y * weapon->line_length + 
+                                renderer.tex_x * (weapon->bits_per_pixel / 8));
+                    renderer.color = *(unsigned int*)renderer.tex_addr;
+                    
+                    /* Extract RGB components */
+                    renderer.red = (renderer.color >> 16) & 0xFF;
+                    renderer.green = (renderer.color >> 8) & 0xFF;
+                    renderer.blue = renderer.color & 0xFF;
+                    
+                    /* Skip nearly black pixels (transparency) */
+                    if (!(renderer.red < 10 && renderer.green< 10 && renderer.blue< 10))
                     {
-                        dst = game->screen.addr + ((r.y + r.tex_y) * game->screen.line_length + 
-                              (r.x + r.tex_x) * (game->screen.bits_per_pixel / 8));
-                        *(unsigned int*)dst = r.color;
+                        dst = game->screen.addr + ((renderer.y + renderer.tex_y) * game->screen.line_length + 
+                              (renderer.x + renderer.tex_x) * (game->screen.bits_per_pixel / 8));
+                        *(unsigned int*)dst = renderer.color;
                     }
                 }
-                r.tex_x++;
+                renderer.tex_x++;
             }
         }
-        r.tex_y++;
+        renderer.tex_y++;
     }
 }
 
 
-void	render_sky(t_game *game, int column_x, t_render *r)
+void render_sky(t_game *game, int column_x, t_render *renderer)
 {
-	r->y = 0;
-	r->color = 0x87CEEB;
-	while (r->y < r->draw_start)
-	{
-		r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
-				+ column_x * (game->screen.bits_per_pixel / 8));
-		*(unsigned int *)(r->screen_pixel) = r->color;
-		r->y++;
-	}
+    renderer->y = 0;
+    renderer->color = 0x87CEEB; // Sky blue color
+    
+    /* Draw sky from top of screen to wall top */
+    while (renderer->y < renderer->draw_start)
+    {
+        renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
+                + column_x * (game->screen.bits_per_pixel / 8));
+        *(unsigned int *)(renderer->screen_pixel) = renderer->color;
+        renderer->y++;
+    }
 }
-void render_wall(t_game *game, int column_x, t_render *r, t_ray *ray)
+void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
     double step;
     double texture_pos;
     int texture_y;
 
-    // Calcul de la coordonnée de texture en fonction du point d'impact exact
+    /* Calculate texture coordinate based on exact hit point */
     if (ray->hit_vertical)
-        r->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
     else
-        r->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
 
-    r->y = r->draw_start;
-    step = (double)TILE_SIZE / r->wall_height;
-    texture_pos = (r->draw_start - (DISPLAY_HEIGHT / 2 - r->wall_height / 2)) * step;
+    renderer->y = renderer->draw_start;
+    step = (double)TILE_SIZE / renderer->wall_height;
+    texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2)) * step;
     
-    while (r->y <= r->draw_end)
+    /* Draw wall pixel by pixel */
+    while (renderer->y <= renderer->draw_end)
     {
-        if (r->y >= 0 && r->y < DISPLAY_HEIGHT)
+        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
             texture_y = (int)texture_pos;
-            if (r->tex_x >= 0 && r->tex_x < TILE_SIZE
+            if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
                 && texture_y >= 0 && texture_y < TILE_SIZE
                 && game->map.wall_texture.addr != NULL)
             {
-                r->tex_addr = game->map.wall_texture.addr + (texture_y
-                    * game->map.wall_texture.line_length + r->tex_x
+                /* Get texture pixel color */
+                renderer->tex_addr = game->map.wall_texture.addr + (texture_y
+                    * game->map.wall_texture.line_length + renderer->tex_x
                     * (game->map.wall_texture.bits_per_pixel / 8));
-                r->color = *(unsigned int *)(r->tex_addr);
+                renderer->color = *(unsigned int *)(renderer->tex_addr);
             }
             else
-                r->color = 0x654321;
-                
-            r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
+                renderer->color = 0x654321; // Default brown color
+            
+            /* Draw pixel to screen buffer */
+            renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
                     + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)(r->screen_pixel) = r->color;
+            *(unsigned int *)(renderer->screen_pixel) = renderer->color;
         }
         texture_pos = texture_pos + step;
-        r->y++;
+        renderer->y++;
     }
 }
 
 
-void render_door(t_game *game, int column_x, t_render *r, t_ray *ray)
+void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
     double step;
     double texture_pos;
     int texture_y;
 
-    // Calcul de la coordonnée de texture en fonction du point d'impact exact
+    /* Calculate texture coordinate based on exact hit point */
     if (ray->hit_vertical)
-        r->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
     else
-        r->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
 
-    r->y = r->draw_start;
-    step = (double)TILE_SIZE / r->wall_height;
-    texture_pos = (r->draw_start - (DISPLAY_HEIGHT / 2 - r->wall_height / 2)) * step;
+    renderer->y = renderer->draw_start;
+    step = (double)TILE_SIZE / renderer->wall_height;
+    texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2)) * step;
     
-    while (r->y <= r->draw_end)
+    /* Draw door pixel by pixel */
+    while (renderer->y <= renderer->draw_end)
     {
-        if (r->y >= 0 && r->y < DISPLAY_HEIGHT)
+        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
             texture_y = (int)texture_pos;
-            if (r->tex_x >= 0 && r->tex_x < TILE_SIZE
+            if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
                 && texture_y >= 0 && texture_y < TILE_SIZE
                 && game->map.door_texture.addr != NULL)
             {
-                r->tex_addr = game->map.door_texture.addr + (texture_y
-                    * game->map.door_texture.line_length + r->tex_x
+                /* Get texture pixel color */
+                renderer->tex_addr = game->map.door_texture.addr + (texture_y
+                    * game->map.door_texture.line_length + renderer->tex_x
                     * (game->map.door_texture.bits_per_pixel / 8));
-                r->color = *(unsigned int *)(r->tex_addr);
+                renderer->color = *(unsigned int *)(renderer->tex_addr);
             }
             else
-                r->color = 0x654321;
-                
-            r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
+                renderer->color = 0x654321; // Default brown color
+            
+            /* Draw pixel to screen buffer */
+            renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
                     + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)(r->screen_pixel) = r->color;
+            *(unsigned int *)(renderer->screen_pixel) = renderer->color;
         }
         texture_pos = texture_pos + step;
-        r->y++;
+        renderer->y++;
     }
 }
 
@@ -198,54 +213,57 @@ This approach aligns with how professional raycasting engines handle texturing, 
 */
 
 
-void render_floor(t_game *game, int column_x, t_render *r, t_ray *ray)
+void render_floor(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
     unsigned int base_color;
     double floor_step_x, floor_step_y;
     double weight;
 
-    r->y = r->draw_end + 1;
-    while (r->y < DISPLAY_HEIGHT)
+    renderer->y = renderer->draw_end + 1;
+    
+    /* Draw floor from wall bottom to screen bottom */
+    while (renderer->y < DISPLAY_HEIGHT)
     {
-        // Calcul du poids pour la distance
-        weight = (DISPLAY_HEIGHT / (2.0 * r->y - DISPLAY_HEIGHT));
+        // Calculate weight for distance
+        weight = (DISPLAY_HEIGHT / (2.0 * renderer->y - DISPLAY_HEIGHT));
         
-        // Coordonnées exactes du pixel du sol dans l'espace 3D
-        // Utilise une projection plus précise
+        // Calculate exact floor pixel coordinates in 3D space
+        // Uses more precise projection
         floor_step_x = weight * (ray->wall_hit_x - game->player.x) / ray->distance + game->player.x;
         floor_step_y = weight * (ray->wall_hit_y - game->player.y) / ray->distance + game->player.y;
         
-        // Calcul des coordonnées de texture (avec une échelle appropriée)
-        r->tex_x = (int)(floor_step_x * 0.5) % TILE_SIZE;
-        r->tex_y = (int)(floor_step_y * 0.5) % TILE_SIZE;
+        // Calculate texture coordinates (with appropriate scaling)
+        renderer->tex_x = (int)(floor_step_x * 0.5) % TILE_SIZE;
+        renderer->tex_y = (int)(floor_step_y * 0.5) % TILE_SIZE;
         
-        // Facteur de gradation basé sur la distance
-        r->dim_factor = 1.0 - fmin(1.0, (r->y - r->draw_end) / (double)(DISPLAY_HEIGHT - r->draw_end)) * 0.6;
+        // Darkening factor based on distance
+        renderer->dim_factor = 1.0 - fmin(1.0, (renderer->y - renderer->draw_end) / 
+                             (double)(DISPLAY_HEIGHT - renderer->draw_end)) * 0.6;
         
-        // S'assurer que les coordonnées de texture sont valides
-        if (r->tex_x >= 0 && r->tex_x < TILE_SIZE && 
-            r->tex_y >= 0 && r->tex_y < TILE_SIZE && 
+        // Ensure texture coordinates are valid
+        if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE && 
+            renderer->tex_y >= 0 && renderer->tex_y < TILE_SIZE && 
             game->map.floor_texture.addr != NULL)
         {
-            // Obtenir la couleur du pixel de la texture
-            r->tex_addr = game->map.floor_texture.addr + (r->tex_y * 
-                game->map.floor_texture.line_length + r->tex_x * 
+            // Get texture pixel color
+            renderer->tex_addr = game->map.floor_texture.addr + (renderer->tex_y * 
+                game->map.floor_texture.line_length + renderer->tex_x * 
                 (game->map.floor_texture.bits_per_pixel / 8));
             
-            // Appliquer le facteur de gradation aux composantes RGB
-            base_color = *(unsigned int *)(r->tex_addr);
-            r->r = ((base_color >> 16) & 0xFF) * r->dim_factor;
-            r->g = ((base_color >> 8) & 0xFF) * r->dim_factor;
-            r->b = (base_color & 0xFF) * r->dim_factor;
-            r->color = (r->r << 16) | (r->g << 8) | r->b;
+            // Apply darkening factor to RGB components
+            base_color = *(unsigned int *)(renderer->tex_addr);
+            renderer->red = ((base_color >> 16) & 0xFF) * renderer->dim_factor;
+            renderer->green = ((base_color >> 8) & 0xFF) * renderer->dim_factor;
+            renderer->blue = (base_color & 0xFF) * renderer->dim_factor;
+            renderer->color = (renderer->red << 16) | (renderer->green << 8) | renderer->blue;
         }
         else
-            r->color = 0x228B22; // Couleur verte par défaut
+            renderer->color = 0x228B22; // Default green color
         
-        // Dessiner le pixel
-        r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
+        // Draw pixel to screen buffer
+        renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
             + column_x * (game->screen.bits_per_pixel / 8));
-        *(unsigned int *)(r->screen_pixel) = r->color;
-        r->y++;
+        *(unsigned int *)(renderer->screen_pixel) = renderer->color;
+        renderer->y++;
     }
 }

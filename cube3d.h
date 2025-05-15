@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/15 16:52:01 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/15 17:06:48 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,39 +124,34 @@ typedef struct s_game
 
 typedef struct s_render
 {
-	// Dimensions du mur
-	double			corrected_dist;
-	int				wall_height;
-	int				door_height;
-	int				draw_start;
-	int				draw_end;
-
-	// Variables d'itération
-	int				x;
-	int				y;
-
-	// Texture
-	int				tex_x;
-	int				tex_y;
-	char			*tex_addr;
-
-	// Sol
-	double			row_distance;
-	double			floor_x;
-	double			floor_y;
-	double			dim_factor;
-
-	// Couleur
-	unsigned int	color;
-	unsigned int	r;
-	unsigned int	g;
-	unsigned int	b;
-
-	// Pixel
-	char			*screen_pixel;
-    int texture_offset_y;
-}					t_render;
-
+    /* Distance calculations and dimensions */
+    double          corrected_dist;   // Wall distance corrected for fisheye effect
+    int             wall_height;      // Wall height on screen (in pixels)
+    int             door_height;      // Door height on screen (in pixels)
+    /* Vertical rendering boundaries */
+    int             draw_start;       // Starting pixel for vertical column rendering
+    int             draw_end;         // Ending pixel for vertical column rendering
+    int             texture_offset_y; // Vertical texture offset for walls taller than screen
+    /* Screen coordinates and iterators */
+    int             x;                // Current horizontal position
+    int             y;                // Current vertical position
+    /* Texture coordinates */
+    int             tex_x;            // X coordinate in texture
+    int             tex_y;            // Y coordinate in texture
+    char            *tex_addr;        // Address of pixel in texture data
+    /* Floor rendering variables */
+    double          row_distance;     // Distance to the pixel row being rendered
+    double          floor_x;          // Floor X coordinate in world space
+    double          floor_y;          // Floor Y coordinate in world space
+    double          dim_factor;       // Darkening factor based on distance
+    /* Color management */
+    unsigned int    color;            // Final pixel color
+    unsigned int    red;                // Red component
+    unsigned int    green;                // Green component
+    unsigned int    blue;                // Blue component
+    /* Screen pixel pointer */
+    char            *screen_pixel;    // Destination pixel address on screen
+} t_render;
 
 typedef struct s_sprite
 {

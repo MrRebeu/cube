@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   cube3d.c                                           :+:      :+:    :+:   */
+/*   raycasting.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/14 20:32:34 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/15 17:11:47 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,6 @@ int is_not_wall(t_map *map, double x, double y)
     
     if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
         return (0);
-    
-    // Voici le point clé - actuellement '1' et 'D' sont traités pareil
     if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D')
         return (0);
     else

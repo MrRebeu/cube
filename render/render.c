@@ -6,41 +6,51 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/14 21:28:27 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/15 17:08:29 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../cube3d.h"
 
-void	render_column(t_game *game, int column_x, t_ray *ray)
+void render_column(t_game *game, int column_x, t_ray *ray)
 {
-	t_render	r;
+    t_render renderer;
 
-	// Calcul des dimensions du mur
-	r.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle,
-			ray->player_angle);
-	r.wall_height = calc_wall_height(r.corrected_dist);
-	r.door_height = (int)(r.wall_height * 1.3);
-
-	r.draw_start = (DISPLAY_HEIGHT / 2) - (r.wall_height / 2);
-	r.draw_end = (DISPLAY_HEIGHT / 2) + (r.wall_height / 2);
-	// Calcola offset nella texture se il muro è troppo alto
-	r.texture_offset_y = 0;
-	if (r.wall_height > DISPLAY_HEIGHT)
-		r.texture_offset_y = (r.wall_height - DISPLAY_HEIGHT) / 2;
-	// Ajustement des limites
-	if (r.draw_start < 0)
-		r.draw_start = 0;
-	if (r.draw_end >= DISPLAY_HEIGHT)
-		r.draw_end = DISPLAY_HEIGHT - 1;
-    render_sky(game, column_x, &r);
-    // Choisir la fonction de rendu en fonction du type d'élément touché
+    /* 1. Calculate wall dimensions */
+    // Correct distance to prevent fisheye effect
+    renderer.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle, ray->player_angle);
+    
+    // Calculate wall and door height on screen
+    renderer.wall_height = calc_wall_height(renderer.corrected_dist);
+    renderer.door_height = (int)(renderer.wall_height * 1.3);  // Doors are 30% taller than walls
+    
+    /* 2. Determine vertical rendering boundaries */
+    renderer.draw_start = (DISPLAY_HEIGHT / 2) - (renderer.wall_height / 2);
+    renderer.draw_end = (DISPLAY_HEIGHT / 2) + (renderer.wall_height / 2);
+    
+    // Handle texture offset for very tall walls
+    renderer.texture_offset_y = 0;
+    if (renderer.wall_height > DISPLAY_HEIGHT)
+        renderer.texture_offset_y = (renderer.wall_height - DISPLAY_HEIGHT) / 2;
+    
+    // Clamp values to screen dimensions
+    if (renderer.draw_start < 0)
+        renderer.draw_start = 0;
+    if (renderer.draw_end >= DISPLAY_HEIGHT)
+        renderer.draw_end = DISPLAY_HEIGHT - 1;
+    
+    /* 3. Render column sequentially (from top to bottom) */
+    // Render sky (top portion)
+    render_sky(game, column_x, &renderer);
+    
+    // Render wall or door based on hit type
     if (ray->hit_type == 'D')
-        render_door(game, column_x, &r, ray);
-    else // '1' ou autre
-        render_wall(game, column_x, &r, ray);
-    // Rendu du sol
-    render_floor(game, column_x, &r, ray);
+        render_door(game, column_x, &renderer, ray);
+    else // '1' or other wall type
+        render_wall(game, column_x, &renderer, ray);
+    
+    // Render floor (bottom portion)
+    render_floor(game, column_x, &renderer, ray);
 }
 void	render_frame(t_game *game)
 {
