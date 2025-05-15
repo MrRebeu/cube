@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/14 21:28:44 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/15 16:55:21 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,41 +198,54 @@ This approach aligns with how professional raycasting engines handle texturing, 
 */
 
 
-
-void	render_floor(t_game *game, int column_x, t_render *r, t_ray *ray)
+void render_floor(t_game *game, int column_x, t_render *r, t_ray *ray)
 {
-	unsigned int	base_color;
+    unsigned int base_color;
+    double floor_step_x, floor_step_y;
+    double weight;
 
-	r->y = r->draw_end + 1;
-	while (r->y < DISPLAY_HEIGHT)
-	{
-		r->row_distance = (DISPLAY_HEIGHT / 2.0) / (r->y - DISPLAY_HEIGHT
-				/ 2.0);
-		r->floor_x = game->player.x + r->row_distance * cos(ray->radiant_angle)
-			/ 4.0;
-		r->floor_y = game->player.y + r->row_distance * sin(ray->radiant_angle)
-			/ 4.0;
-		r->tex_x = ((int)(r->floor_x * TILE_SIZE)) % TILE_SIZE;
-		r->tex_y = ((int)(r->floor_y * TILE_SIZE)) % TILE_SIZE;
-		r->dim_factor = 1.0 - fmin(1.0, r->row_distance / 15.0);
-		if (r->tex_x >= 0 && r->tex_x < TILE_SIZE && r->tex_y >= 0
-			&& r->tex_y < TILE_SIZE && game->map.floor_texture.addr != NULL)
-		{
-			r->tex_addr = game->map.floor_texture.addr + (r->tex_y
-					* game->map.floor_texture.line_length + r->tex_x
-					* (game->map.floor_texture.bits_per_pixel / 8));
-			// Manipulation directe des composantes RGB
-			base_color = *(unsigned int *)(r->tex_addr);
-			r->r = ((base_color >> 16) & 0xFF) * r->dim_factor;
-			r->g = ((base_color >> 8) & 0xFF) * r->dim_factor;
-			r->b = (base_color & 0xFF) * r->dim_factor;
-			r->color = (r->r << 16) | (r->g << 8) | r->b;
-		}
-		else
-			r->color = 0x228B22;
-		r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
-				+ column_x * (game->screen.bits_per_pixel / 8));
-		*(unsigned int *)(r->screen_pixel) = r->color;
-		r->y++;
-	}
+    r->y = r->draw_end + 1;
+    while (r->y < DISPLAY_HEIGHT)
+    {
+        // Calcul du poids pour la distance
+        weight = (DISPLAY_HEIGHT / (2.0 * r->y - DISPLAY_HEIGHT));
+        
+        // Coordonnées exactes du pixel du sol dans l'espace 3D
+        // Utilise une projection plus précise
+        floor_step_x = weight * (ray->wall_hit_x - game->player.x) / ray->distance + game->player.x;
+        floor_step_y = weight * (ray->wall_hit_y - game->player.y) / ray->distance + game->player.y;
+        
+        // Calcul des coordonnées de texture (avec une échelle appropriée)
+        r->tex_x = (int)(floor_step_x * 0.5) % TILE_SIZE;
+        r->tex_y = (int)(floor_step_y * 0.5) % TILE_SIZE;
+        
+        // Facteur de gradation basé sur la distance
+        r->dim_factor = 1.0 - fmin(1.0, (r->y - r->draw_end) / (double)(DISPLAY_HEIGHT - r->draw_end)) * 0.6;
+        
+        // S'assurer que les coordonnées de texture sont valides
+        if (r->tex_x >= 0 && r->tex_x < TILE_SIZE && 
+            r->tex_y >= 0 && r->tex_y < TILE_SIZE && 
+            game->map.floor_texture.addr != NULL)
+        {
+            // Obtenir la couleur du pixel de la texture
+            r->tex_addr = game->map.floor_texture.addr + (r->tex_y * 
+                game->map.floor_texture.line_length + r->tex_x * 
+                (game->map.floor_texture.bits_per_pixel / 8));
+            
+            // Appliquer le facteur de gradation aux composantes RGB
+            base_color = *(unsigned int *)(r->tex_addr);
+            r->r = ((base_color >> 16) & 0xFF) * r->dim_factor;
+            r->g = ((base_color >> 8) & 0xFF) * r->dim_factor;
+            r->b = (base_color & 0xFF) * r->dim_factor;
+            r->color = (r->r << 16) | (r->g << 8) | r->b;
+        }
+        else
+            r->color = 0x228B22; // Couleur verte par défaut
+        
+        // Dessiner le pixel
+        r->screen_pixel = game->screen.addr + (r->y * game->screen.line_length
+            + column_x * (game->screen.bits_per_pixel / 8));
+        *(unsigned int *)(r->screen_pixel) = r->color;
+        r->y++;
+    }
 }

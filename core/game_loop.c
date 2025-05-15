@@ -6,7 +6,7 @@
 /*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/14 23:35:20 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/12 17:43:10 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,7 @@ int close_window(void)
 
 int render_next_frame(t_game *game)
 {
-    move_player(game);
-
-    update_rays(game);
+    move_player(&game->player);
 
     render_scene(game);
     
@@ -54,8 +52,8 @@ void render_ui(t_game *game)
 int loop_game(t_game *game)
 {
     // Configuration des hooks
-    mlx_hook(game->win, 2, 1L << 0, key_press, game);     // Appui sur touche
-    mlx_hook(game->win, 3, 1L << 1, key_release, game);   // Relâchement de touche
+    mlx_hook(game->win, 2, 1L << 0, key_press, &game->player);     // Appui sur touche
+    mlx_hook(game->win, 3, 1L << 1, key_release, &game->player);   // Relâchement de touche
     mlx_hook(game->win, 17, 1L << 17, close_window, game);         // Fermeture de fenêtre
     
     // Fonction appelée en boucle
