@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/15 17:08:29 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 13:40:07 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ void render_column(t_game *game, int column_x, t_ray *ray)
     
     /* 3. Render column sequentially (from top to bottom) */
     // Render sky (top portion)
-    render_sky(game, column_x, &renderer);
+    //render_sky(game, column_x, &renderer);
     
     // Render wall or door based on hit type
     if (ray->hit_type == 'D')
@@ -50,7 +50,7 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_wall(game, column_x, &renderer, ray);
     
     // Render floor (bottom portion)
-    render_floor(game, column_x, &renderer, ray);
+    render_floor(game, column_x, &renderer);
 }
 void	render_frame(t_game *game)
 {

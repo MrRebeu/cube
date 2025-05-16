@@ -97,6 +97,31 @@ int set_player_pos(t_game *game)
     return (0);
 }
 
+int set_pnj_pos(t_game *game)
+{
+    int y;
+    int x;
+
+    y = 0;
+    while (y < game->map.height)
+    {
+        x = 0;
+        while (x < game->map.width)
+        {
+			if (game->map.matrix[y][x] == 'M')
+			{
+				game->pnj.x = (x * TILE_SIZE) + (TILE_SIZE / 2);
+				game->pnj.y = (y * TILE_SIZE) + (TILE_SIZE / 2);
+			    //game->map.matrix[y][x] = '0';
+				return (1);
+            }
+            x++;
+        }
+        y++;
+    }
+    return (0);
+}
+
 int check_file_cub(char *file_path)
 {
     int i;

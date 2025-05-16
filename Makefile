@@ -8,10 +8,11 @@ CORE_SRC = core/main.c core/game_loop.c core/init_game.c
 RAYCASTER_SRC = raycaster/raycasting.c raycaster/ray_utils.c
 MAP_SRC = map/map_parser.c
 PLAYER_SRC = player/player_move.c
-RENDER_SRC = render/render.c render/render_env.c
+PNJ_SRC = pnj/pnj.c
+RENDER_SRC = render/render.c render/render_env.c render/render_ui.c
 GNL_SRC = gnl/get_next_line.c gnl/get_next_line_utils.c
 
-SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC)
+SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(PNJ_SRC)
 
 OBJS = $(SRCS:.c=.o)
 RM = rm -f

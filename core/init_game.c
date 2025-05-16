@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/15 15:55:22 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 18:02:20 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,20 @@ int	init_game(t_game *game, char *map_file)
 	int	height;
 
 	init_player(&game->player);
+	//init_pnj(&game->pnj);
+	// if (!set_pnj_pos(game))
+	// {
+	// 	printf("Erreur morty");
+	// 	return (0);
+	// }
+	game->player.game = game;
 	game->mlx = mlx_init();
 	if (!game->mlx)
 		return (0);
 	game->win = mlx_new_window(game->mlx, DISPLAY_WIDTH, DISPLAY_HEIGHT,
 			"Raycaster");
+	mlx_mouse_hide(game->mlx, game->win);
+
 	if (!game->win)
 		return (0);
 	game->screen.ptr = mlx_new_image(game->mlx, DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -33,6 +42,12 @@ int	init_game(t_game *game, char *map_file)
 			&game->screen.endian);
 	if (!read_map(map_file, game))
 		return (0);
+	if (!set_player_pos(game))
+    {
+        printf("Erreur: Aucune position de départ trouvée dans la carte!\n");
+        return (0);
+    }
+
 	//
 	game->map.wall_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/wall.xpm",
 			&width, &height);
@@ -45,6 +60,9 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.wall_texture.line_length,
 			&game->map.wall_texture.endian);
 	//
+	game->current_weapon = PORTALGUN;
+
+	
 	game->map.floor_texture.ptr = mlx_xpm_file_to_image(game->mlx,
 			"./texture/floor.xpm", &width, &height);
 	if (!game->map.floor_texture.ptr)
@@ -55,15 +73,27 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.floor_texture.bits_per_pixel,
 			&game->map.floor_texture.line_length,
 			&game->map.floor_texture.endian);
-	game->weapons[0].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/arm_1.xpm",
+			
+	game->weapons[RAYGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_portalgun.xpm",
 			&width, &height);
-	if (!game->weapons[0].ptr)
+	if (!game->weapons[RAYGUN].ptr)
 		return (0);
-	game->weapons[0].width = width;
-	game->weapons[0].height = height;
-	game->weapons[0].addr = mlx_get_data_addr(game->weapons[0].ptr,
-			&game->weapons[0].bits_per_pixel, &game->weapons[0].line_length,
-			&game->weapons[0].endian);
+	game->weapons[RAYGUN].width = width;
+	game->weapons[RAYGUN].height = height;
+	game->weapons[RAYGUN].addr = mlx_get_data_addr(game->weapons[RAYGUN].ptr,
+			&game->weapons[RAYGUN].bits_per_pixel, &game->weapons[RAYGUN].line_length,
+			&game->weapons[RAYGUN].endian);
+
+	game->weapons[PORTALGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_raygun.xpm",
+			&width, &height);
+	if (!game->weapons[PORTALGUN].ptr)
+		return (0);
+	game->weapons[PORTALGUN].width = width;
+	game->weapons[PORTALGUN].height = height;
+	game->weapons[PORTALGUN].addr = mlx_get_data_addr(game->weapons[PORTALGUN].ptr,
+			&game->weapons[PORTALGUN].bits_per_pixel, &game->weapons[PORTALGUN].line_length,
+			&game->weapons[PORTALGUN].endian);
+			
 	game->map.door_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/door.xpm",
 			&width, &height);
 	if (!game->map.door_texture.ptr)
@@ -77,10 +107,10 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.door_texture.bits_per_pixel,
 			&game->map.door_texture.line_length,
 			&game->map.door_texture.endian);
-	game->player.x = 0;
-	game->player.y = 100;
-	game->player.angle = 0;
-	game->player.fov = FOV;
-	game->current_weapon = 0;
+	// game->player.x = 0;
+	// game->player.y = 100;
+	// game->player.angle = 0;
+	// game->player.fov = FOV;
+	// game->current_weapon = 0;
 	return (1);
 }

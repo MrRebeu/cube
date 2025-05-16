@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/15 17:06:48 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 17:22:20 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,15 +31,46 @@
 # define S 115
 # define D 100
 
+# define ESC 65307
+
 # define R 114
 
 # define Q 113
 # define E 101
 
+# define LEFT 65508
+# define RIGHT 65363
+
+# define RAYGUN 0
+# define PORTALGUN 1
+# define MAX_WEAPONS 2
+
 # define TILE_SIZE 64
 # define DISPLAY_WIDTH 1920
 # define DISPLAY_HEIGHT 1080
 # define FOV (M_PI / 3)
+
+typedef struct s_game t_game;
+
+typedef struct s_img
+{
+	void			*ptr;
+	char			*addr;
+	int				bits_per_pixel;
+	int				line_length;
+	int				endian;
+	int				width;
+	int				height;
+}					t_img;
+
+typedef struct s_pnj
+{
+	double			x;
+	double			y;
+	t_img			*texture;
+	double			distance; // Distance au joueur (à calculer à chaque frame)
+	int				active;
+}					t_pnj;
 
 typedef struct s_player
 {
@@ -57,6 +88,10 @@ typedef struct s_player
 	bool			left_rotate;
 	bool			right_rotate;
 	bool			turn_back;
+	bool			left;
+	bool			right;
+	t_game			*game;
+	int				current_weapon;
 }					t_player;
 
 typedef struct s_intersect
@@ -66,17 +101,6 @@ typedef struct s_intersect
 	double			step_x;
 	double			step_y;
 }					t_intersect;
-
-typedef struct s_img
-{
-	void			*ptr;
-	char			*addr;
-	int				bits_per_pixel;
-	int				line_length;
-	int				endian;
-	int				width;
-	int				height;
-}					t_img;
 
 typedef struct s_env
 {
@@ -120,6 +144,7 @@ typedef struct s_game
 	// Tableau pour les armes (vous pouvez ajouter plus d'armes)
 	int current_weapon;        // Indice de l'arme actuellement équipée
 	t_ray rays[DISPLAY_WIDTH]; // Résultats du raycasting pour chaque colonne
+	t_pnj pnj;
 }					t_game;
 
 typedef struct s_render
@@ -190,8 +215,7 @@ int					init_game(t_game *game, char *map_file);
 
 // render
 void render_wall(t_game *game, int column_x, t_render *r, t_ray *ray);
-void				render_floor(t_game *game, int column_x, t_render *r,
-						t_ray *ray);
+void				render_floor(t_game *game, int column_x, t_render *r);
 void				render_sky(t_game *game, int column_x, t_render *r);
 void				render_weapon(t_game *game);
 void				move_player(t_player *player);
@@ -205,5 +229,8 @@ void				render_ui(t_game *game);
 int					loop_game(t_game *game);
 void render_door(t_game *game, int column_x, t_render *r, t_ray *ray);
 double				normalize_angle(double angle);
+int close_window(void *param);
+void draw_crosshair(t_game *game);
+int mouse_move(int x, int y, t_game *game);
 
 #endif
