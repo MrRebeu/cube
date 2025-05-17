@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   raycasting.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 19:38:56 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 21:35:25 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ double	no_fish_eye(double min_distance, double radiant_angle,
 		angle_diff -= 2 * M_PI;
 	while (angle_diff < -M_PI)
 		angle_diff += 2 * M_PI;
-	corrected_dist = min_distance * fabs(cos(angle_diff));
+	corrected_dist = min_distance * (cos(angle_diff));
 	return (corrected_dist);
 }
 int	calc_wall_height(double corrected_dist)

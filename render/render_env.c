@@ -6,7 +6,7 @@
 /*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 20:07:58 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/17 23:01:17 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,108 +151,88 @@ void render_sky(t_game *game, int column_x, t_render *renderer)
 
 void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    double step;
-    double texture_pos;
-    int texture_y;
+    int   CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H  = renderer->wall_height;
+    int   texture_y;
 
-    /* Calculate texture coordinate based on exact hit point */
+    /* Calcolo tex_x in base al punto d’impatto */
     if (ray->hit_vertical)
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
     else
         renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
 
     renderer->y = renderer->draw_start;
-    step = (double)TILE_SIZE / renderer->wall_height;
-    texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2)) * step;
-
-    /* Draw door pixel by pixel */
     while (renderer->y <= renderer->draw_end)
     {
         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
-            texture_y = (int)texture_pos;
-            if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
-                && texture_y >= 0 && texture_y < TILE_SIZE
-                && game->map.door_texture.addr != NULL)
-            {
-                /* Get texture pixel color */
-                renderer->tex_addr = game->map.door_texture.addr + (texture_y
-                    * game->map.door_texture.line_length + renderer->tex_x
-                    * (game->map.door_texture.bits_per_pixel / 8));
-                renderer->color = *(unsigned int *)(renderer->tex_addr);
-            }
-            else
-                renderer->color = 0x654321; // Default brown color
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0)           texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
-            /* Draw pixel to screen buffer */
-            renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
-                    + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)(renderer->screen_pixel) = renderer->color;
+            /* Preleva il pixel dalla texture del portale */
+            renderer->tex_addr = game->map.wall_portal_texture.addr
+                + (texture_y * game->map.wall_portal_texture.line_length
+                   + renderer->tex_x * (game->map.wall_portal_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
+
+            /* Scrive sul buffer video */
+            renderer->screen_pixel = game->screen.addr
+                + (renderer->y * game->screen.line_length
+                   + column_x * (game->screen.bits_per_pixel / 8));
+            *(unsigned int *)renderer->screen_pixel = renderer->color;
         }
-        texture_pos = texture_pos + step;
         renderer->y++;
     }
 }
 
-// void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray)
-// {
-//     printf("Rendu d'un portail à la colonne %d\n OK", column_x);
+void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
+{
+    int   CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H  = renderer->wall_height;
+    int   texture_y;
 
-//     double step;
-//     double texture_pos;
-//     int texture_y;
+    /* Calcolo tex_x in base al punto d’impatto */
+    if (ray->hit_vertical)
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+    else
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
 
-//     if (ray->hit_vertical)
-//     {
-//         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
-//         if (cos(ray->radiant_angle) > 0)
-//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
-//     }
-//     else
-//     {
-//         renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
-//         if (sin(ray->radiant_angle) < 0)
-//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
-//     }
-//     renderer->y = renderer->draw_start;
-//     step = (double)TILE_SIZE / renderer->wall_height;
-//     texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2)) * step;
+    renderer->y = renderer->draw_start;
+    while (renderer->y <= renderer->draw_end)
+    {
+        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
+        {
+            // normalizza y rispetto al centro + pitch e all’altezza H
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0)           texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
-//     /* Draw wall pixel by pixel */
-//     while (renderer->y <= renderer->draw_end)
-//     {
-//         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
-//         {
-//             texture_y = (int)texture_pos;
-//             if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
-//                 && texture_y >= 0 && texture_y < TILE_SIZE
-//                 && game->map.wall_texture.addr != NULL)
-//             {
-//                 /* Get texture pixel color */
-//                 renderer->tex_addr = game->map.wall_texture.addr + (texture_y
-//                     * game->map.wall_texture.line_length + renderer->tex_x
-//                     * (game->map.wall_texture.bits_per_pixel / 8));
-//                 renderer->color = *(unsigned int *)(renderer->tex_addr);
-//             }
-//             else
-//                 renderer->color = 0x654321; // Default brown color
+            /* Preleva il pixel dalla texture della porta */
+            renderer->tex_addr = game->map.door_texture.addr
+                + (texture_y * game->map.door_texture.line_length
+                   + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
 
-//             /* Draw pixel to screen buffer */
-//             renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
-//                     + column_x * (game->screen.bits_per_pixel / 8));
-//             *(unsigned int *)(renderer->screen_pixel) = renderer->color;
-//         }
-//         texture_pos = texture_pos + step;
-//         renderer->y++;
-//     }
-// }
+            /* Scrive sul buffer video */
+            renderer->screen_pixel = game->screen.addr
+                + (renderer->y * game->screen.line_length
+                   + column_x * (game->screen.bits_per_pixel / 8));
+            *(unsigned int *)renderer->screen_pixel = renderer->color;
+        }
+        renderer->y++;
+    }
+}
 
 void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    double step;
-    double texture_pos;
-    int texture_y;
+    int   CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H  = renderer->wall_height;
+    int   texture_y;
 
+    /* Calcolo tex_x in base al punto d’impatto */
     if (ray->hit_vertical)
     {
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
@@ -265,89 +245,33 @@ void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
         if (sin(ray->radiant_angle) < 0)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
+
     renderer->y = renderer->draw_start;
-    step = (double)TILE_SIZE / renderer->wall_height;
-    texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2 + game->pitch)) * step;
-
-
-    /* Draw wall pixel by pixel */
     while (renderer->y <= renderer->draw_end)
     {
         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
-            texture_y = (int)texture_pos;
-            if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
-                && texture_y >= 0 && texture_y < TILE_SIZE
-                && game->map.wall_texture.addr != NULL)
-            {
-                /* Get texture pixel color */
-                renderer->tex_addr = game->map.wall_texture.addr + (texture_y
-                    * game->map.wall_texture.line_length + renderer->tex_x
-                    * (game->map.wall_texture.bits_per_pixel / 8));
-                renderer->color = *(unsigned int *)(renderer->tex_addr);
-            }
-            else
-                renderer->color = 0x654321; // Default brown color
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0)           texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
-            /* Draw pixel to screen buffer */
-            renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
-                    + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)(renderer->screen_pixel) = renderer->color;
+            /* Preleva il pixel dalla texture del muro */
+            renderer->tex_addr = game->map.wall_texture.addr
+                + (texture_y * game->map.wall_texture.line_length
+                   + renderer->tex_x * (game->map.wall_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
+
+            /* Scrive sul buffer video */
+            renderer->screen_pixel = game->screen.addr
+                + (renderer->y * game->screen.line_length
+                   + column_x * (game->screen.bits_per_pixel / 8));
+            *(unsigned int *)renderer->screen_pixel = renderer->color;
         }
-        texture_pos = texture_pos + step;
         renderer->y++;
     }
 }
 
-
-void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
-{
-    double step;
-    double texture_pos;
-    int texture_y;
-
-    /* Calculate texture coordinate based on exact hit point */
-    if (ray->hit_vertical)
-        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
-    else
-        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
-
-    renderer->y = renderer->draw_start;
-    step = (double)TILE_SIZE / renderer->wall_height;
-    texture_pos = (renderer->draw_start - (DISPLAY_HEIGHT / 2 - renderer->wall_height / 2 + game->pitch)) * step;
-
-
-    /* Draw door pixel by pixel */
-    while (renderer->y <= renderer->draw_end)
-    {
-        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
-        {
-            texture_y = (int)texture_pos;
-            if (renderer->tex_x >= 0 && renderer->tex_x < TILE_SIZE
-                && texture_y >= 0 && texture_y < TILE_SIZE
-                && game->map.door_texture.addr != NULL)
-            {
-                /* Get texture pixel color */
-                renderer->tex_addr = game->map.door_texture.addr + (texture_y
-                    * game->map.door_texture.line_length + renderer->tex_x
-                    * (game->map.door_texture.bits_per_pixel / 8));
-                renderer->color = *(unsigned int *)(renderer->tex_addr);
-            }
-            else
-                renderer->color = 0x654321; // Default brown color
-
-            /* Draw pixel to screen buffer */
-            renderer->screen_pixel = game->screen.addr + (renderer->y * game->screen.line_length
-                    + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)(renderer->screen_pixel) = renderer->color;
-        }
-        texture_pos = texture_pos + step;
-        renderer->y++;
-    }
-}
-
-
-//render floor = render floor + sky (no sprite just color like in wolf3D)
 void render_floor(t_game *game, int column_x, t_render *renderer)
 {
     int y;
