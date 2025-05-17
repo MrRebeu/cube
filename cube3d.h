@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 20:07:28 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 20:32:58 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,6 +168,7 @@ typedef struct s_game
     t_portal portal_1;     // Portail bleu
     t_portal portal_2;
 	int			portal_count; // 1 si deja un portail , 0 si zero portail 
+	int pitch;
 }					t_game;
 
 typedef struct s_render

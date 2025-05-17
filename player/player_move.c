@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   player_move.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 19:39:29 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 20:12:19 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ int	key_release(int keycode, t_player *player)
 
 int	key_press(int keycode, t_player *player)
 {
-	printf("keycode pressed: %d\n", keycode);
+	printf("Keycode pressed: %d\n", keycode);
 	if (keycode == ESC)
 		close_window(NULL);
 	if (keycode == W)
@@ -70,6 +70,7 @@ int	key_press(int keycode, t_player *player)
 		if (player->game)
 			player->game->current_weapon = RAYGUN;
 	}
+	// Vérification des limites
 	// if (player->current_weapon >= MAX_WEAPONS)
 	//     player->current_weapon = 0;
 	return (0);
@@ -79,19 +80,27 @@ int	mouse_move(int x, int y, t_game *game)
 	int		center_x;
 	int		center_y;
 	int		delta_x;
+	int		delta_y;
 	double	sensibility;
 
 	center_x = DISPLAY_WIDTH / 2;
 	center_y = DISPLAY_HEIGHT / 2;
-	if (x == center_x || y == center_y)
+	if (x == center_x && y == center_y)
 		return (0);
 	delta_x = x - center_x;
+	delta_y = y - center_y;
 	sensibility = 0.003;
 	game->player.angle += delta_x * sensibility;
 	game->player.angle = normalize_angle(game->player.angle);
+	game->pitch -= delta_y;
+	if (game->pitch > 300)
+		game->pitch = 300;
+	if (game->pitch < -300)
+		game->pitch = -300;
 	mlx_mouse_move(game->mlx, game->win, center_x, center_y);
 	return (0);
 }
+
 
 int	is_wall(t_game *game, float x, float y)
 {
