@@ -11,8 +11,9 @@ PLAYER_SRC = player/player_move.c
 PNJ_SRC = pnj/pnj.c
 RENDER_SRC = render/render.c render/render_env.c render/render_ui.c
 GNL_SRC = gnl/get_next_line.c gnl/get_next_line_utils.c
+SHOOT_SRC = shoot/shoot.c
 
-SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(PNJ_SRC)
+SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(PNJ_SRC) $(SHOOT_SRC)
 
 OBJS = $(SRCS:.c=.o)
 RM = rm -f

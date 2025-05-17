@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 18:02:06 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 19:45:23 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ int render_next_frame(t_game *game)
         
         i++;
     }
+    if (game->player.fire_cooldown > 0)
+        game->player.fire_cooldown--;
 
     render_scene(game);
     //render_pnj(game);
@@ -77,6 +79,7 @@ int loop_game(t_game *game)
 
 // Nouvel hook pour la souris (MotionNotify est l'événement 6 sous X11)
     mlx_hook(game->win, 6, 1L << 6, mouse_move, game);
+    mlx_mouse_hook(game->win, mouse_button, game);
     mlx_loop_hook(game->mlx, render_next_frame, game);
     
     mlx_loop(game->mlx);

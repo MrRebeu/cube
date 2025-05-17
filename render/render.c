@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 13:40:07 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 17:27:46 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,21 @@ void render_column(t_game *game, int column_x, t_ray *ray)
     //render_sky(game, column_x, &renderer);
     
     // Render wall or door based on hit type
-    if (ray->hit_type == 'D')
+    if (ray->hit_type == 'P'){
+        printf("debut de portal");
+        render_wall_portal(game, column_x, &renderer, ray);
+        printf("tout est ok");
+    }
+    else if (ray->hit_type == 'D')
+    {
+        //printf("un D");
         render_door(game, column_x, &renderer, ray);
+    }
     else // '1' or other wall type
+    {
         render_wall(game, column_x, &renderer, ray);
-    
+        //printf ("1");
+    }
     // Render floor (bottom portion)
     render_floor(game, column_x, &renderer);
 }

@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 18:02:20 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 21:02:30 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,16 @@ int	init_game(t_game *game, char *map_file)
 	game->current_weapon = PORTALGUN;
 
 	
+	game->map.wall_portal_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/wall_portal.xpm", &width, &height);
+	if (!game->map.wall_portal_texture.ptr)
+		return (0);
+	game->map.wall_portal_texture.width = width;
+	game->map.wall_portal_texture.height = height;
+		game->map.wall_portal_texture.addr = mlx_get_data_addr(game->map.wall_portal_texture.ptr,
+			&game->map.wall_portal_texture.bits_per_pixel,
+			&game->map.wall_portal_texture.line_length,
+			&game->map.wall_portal_texture.endian);
+	
 	game->map.floor_texture.ptr = mlx_xpm_file_to_image(game->mlx,
 			"./texture/floor.xpm", &width, &height);
 	if (!game->map.floor_texture.ptr)
@@ -107,10 +117,8 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.door_texture.bits_per_pixel,
 			&game->map.door_texture.line_length,
 			&game->map.door_texture.endian);
-	// game->player.x = 0;
-	// game->player.y = 100;
-	// game->player.angle = 0;
-	// game->player.fov = FOV;
-	// game->current_weapon = 0;
+	game->portal_1.is_active = 0;   // Inactif au début
+	game->portal_2.is_active = 0; // Inactif au début
+	game->portal_count = 1;     // Premier tir = portail bleu
 	return (1);
 }

@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 16:22:37 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 19:44:37 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,9 @@ void init_player(t_player *player)
 	player->right_rotate = false;
 	player->turn_back = false;
 	player->current_weapon = PORTALGUN;
+
+	// player->is_firing = 0;
+	// player->fire_cooldown = 0;
 
 }
 

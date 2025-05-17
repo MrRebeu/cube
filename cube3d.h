@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 17:22:20 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/16 21:01:01 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,9 @@ typedef struct s_player
 	bool			right;
 	t_game			*game;
 	int				current_weapon;
+
+	int				is_firing;
+	int				fire_cooldown;
 }					t_player;
 
 typedef struct s_intersect
@@ -117,6 +120,7 @@ typedef struct s_map
 	t_img			floor_texture;
 	t_img			wall_texture;
 	t_img			door_texture;
+	t_img			wall_portal_texture;
 	t_img arm_1;  // Image de l'arme
 	int x_player; // Position X du joueur
 	int y_player; // Position Y du joueur
@@ -133,6 +137,15 @@ typedef struct s_ray
 	char hit_type;
 }					t_ray;
 
+typedef struct s_portal
+{
+    double x;             // Position X dans le monde
+    double y;             // Position Y dans le monde
+    int is_active;        // 1 si le portail est actif, 0 sinon
+    int is_vertical;      // 1 si le portail est sur un mur vertical, 0 si horizontal
+    char surface_type;    // Type de surface ('1' pour mur, 'D' pour porte)
+} t_portal;
+
 typedef struct s_game
 {
 	void *mlx;       // Pointeur MLX
@@ -145,6 +158,9 @@ typedef struct s_game
 	int current_weapon;        // Indice de l'arme actuellement équipée
 	t_ray rays[DISPLAY_WIDTH]; // Résultats du raycasting pour chaque colonne
 	t_pnj pnj;
+    t_portal portal_1;     // Portail bleu
+    t_portal portal_2;
+	int			portal_count; // 1 si deja un portail , 0 si zero portail 
 }					t_game;
 
 typedef struct s_render
@@ -232,5 +248,8 @@ double				normalize_angle(double angle);
 int close_window(void *param);
 void draw_crosshair(t_game *game);
 int mouse_move(int x, int y, t_game *game);
+int	mouse_button(int button, int x, int y, t_game *game);
+void calculate_shoot(t_game *game);
+void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 
 #endif
