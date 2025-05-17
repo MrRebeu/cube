@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 17:27:46 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 19:40:34 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,50 +16,28 @@ void render_column(t_game *game, int column_x, t_ray *ray)
 {
     t_render renderer;
 
-    /* 1. Calculate wall dimensions */
-    // Correct distance to prevent fisheye effect
     renderer.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle, ray->player_angle);
-    
-    // Calculate wall and door height on screen
     renderer.wall_height = calc_wall_height(renderer.corrected_dist);
     renderer.door_height = (int)(renderer.wall_height * 1.3);  // Doors are 30% taller than walls
-    
-    /* 2. Determine vertical rendering boundaries */
     renderer.draw_start = (DISPLAY_HEIGHT / 2) - (renderer.wall_height / 2);
     renderer.draw_end = (DISPLAY_HEIGHT / 2) + (renderer.wall_height / 2);
-    
-    // Handle texture offset for very tall walls
     renderer.texture_offset_y = 0;
     if (renderer.wall_height > DISPLAY_HEIGHT)
         renderer.texture_offset_y = (renderer.wall_height - DISPLAY_HEIGHT) / 2;
-    
-    // Clamp values to screen dimensions
     if (renderer.draw_start < 0)
         renderer.draw_start = 0;
     if (renderer.draw_end >= DISPLAY_HEIGHT)
         renderer.draw_end = DISPLAY_HEIGHT - 1;
-    
-    /* 3. Render column sequentially (from top to bottom) */
-    // Render sky (top portion)
-    //render_sky(game, column_x, &renderer);
-    
-    // Render wall or door based on hit type
-    if (ray->hit_type == 'P'){
-        printf("debut de portal");
+    if (ray->hit_type == 'P')
         render_wall_portal(game, column_x, &renderer, ray);
-        printf("tout est ok");
-    }
     else if (ray->hit_type == 'D')
     {
-        //printf("un D");
         render_door(game, column_x, &renderer, ray);
     }
-    else // '1' or other wall type
+    else
     {
         render_wall(game, column_x, &renderer, ray);
-        //printf ("1");
     }
-    // Render floor (bottom portion)
     render_floor(game, column_x, &renderer);
 }
 void	render_frame(t_game *game)

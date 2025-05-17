@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 21:02:30 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 19:34:21 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.floor_texture.line_length,
 			&game->map.floor_texture.endian);
 			
-	game->weapons[RAYGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_portalgun.xpm",
+	game->weapons[RAYGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_raygun.xpm",
 			&width, &height);
 	if (!game->weapons[RAYGUN].ptr)
 		return (0);
@@ -94,7 +94,7 @@ int	init_game(t_game *game, char *map_file)
 			&game->weapons[RAYGUN].bits_per_pixel, &game->weapons[RAYGUN].line_length,
 			&game->weapons[RAYGUN].endian);
 
-	game->weapons[PORTALGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_raygun.xpm",
+	game->weapons[PORTALGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_portalgun.xpm",
 			&width, &height);
 	if (!game->weapons[PORTALGUN].ptr)
 		return (0);

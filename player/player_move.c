@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 18:06:21 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 19:39:29 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ int	key_release(int keycode, t_player *player)
 
 int	key_press(int keycode, t_player *player)
 {
-	printf("Keycode pressed: %d\n", keycode);
+	printf("keycode pressed: %d\n", keycode);
 	if (keycode == ESC)
 		close_window(NULL);
 	if (keycode == W)
@@ -70,7 +70,6 @@ int	key_press(int keycode, t_player *player)
 		if (player->game)
 			player->game->current_weapon = RAYGUN;
 	}
-	// Vérification des limites
 	// if (player->current_weapon >= MAX_WEAPONS)
 	//     player->current_weapon = 0;
 	return (0);

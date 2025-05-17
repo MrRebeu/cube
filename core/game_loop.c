@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 19:45:23 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 19:40:13 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,9 @@ int render_next_frame(t_game *game)
     {
         double ray_offset = game->player.fov * ((double)i / DISPLAY_WIDTH - 0.5);
         double radiant_angle = game->player.angle + ray_offset;
-        // Normaliser l'angle
         radiant_angle = normalize_angle(radiant_angle);
-
         game->rays[i].radiant_angle = radiant_angle;
         game->rays[i].player_angle = game->player.angle;
-
-        // Recalculer la distance avec la position actuelle du joueur
         game->rays[i].distance = ray_casting(game, radiant_angle, i);
         
         i++;
@@ -71,18 +67,16 @@ void render_ui(t_game *game)
 
 int loop_game(t_game *game)
 {
-    mlx_hook(game->win, 2, 1L << 0, key_press, &game->player);     // Appui sur touche
-    mlx_hook(game->win, 3, 1L << 1, key_release, &game->player);   // Relâchement de touche
-    mlx_hook(game->win, 17, 1L << 17, close_window, game);         // Fermeture de fenêtre
+    mlx_hook(game->win, 2, 1L << 0, key_press, &game->player);
+    mlx_hook(game->win, 3, 1L << 1, key_release, &game->player);
+    mlx_hook(game->win, 17, 1L << 17, close_window, game);
     
 
 
-// Nouvel hook pour la souris (MotionNotify est l'événement 6 sous X11)
     mlx_hook(game->win, 6, 1L << 6, mouse_move, game);
     mlx_mouse_hook(game->win, mouse_button, game);
     mlx_loop_hook(game->mlx, render_next_frame, game);
     
     mlx_loop(game->mlx);
-    
     return (0);
 }

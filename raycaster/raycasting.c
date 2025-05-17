@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 17:39:44 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 19:38:56 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,100 +124,28 @@ Extensibility: New element types can be added simply by assigning new characters
 This change maintains the core raycasting algorithm while adding the capability to distinguish between different types of objects in the game world,
 	creating a foundation for more complex environments and interactions.*/
 
-char get_hit_type(t_map *map, double x, double y)
+char	get_hit_type(t_map *map, double x, double y)
 {
-    int map_x = (int)(x / TILE_SIZE);
-    int map_y = (int)(y / TILE_SIZE);
-    
-    
-    // Affiche l'adresse mémoire de la carte pour comparer
-    if ((int)x % 500 == 0 && (int)y % 500 == 0)
-    {
-        printf("get_hit_type: map=%p, map->matrix=%p\n", 
-               (void*)map, (void*)map->matrix);
-    }
-    char type = '?';  // Valeur par défaut
-    
-    if (map_x >= 0 && map_x < map->width && map_y >= 0 && map_y < map->height)
-    {
-        type = map->matrix[map_y][map_x];
-        
-        // Uniquement pour certaines positions pour éviter trop d'affichage
-        if ((int)x % 200 == 0 && (int)y % 200 == 0)
-        {
-            printf("get_hit_type à (%d, %d) [%.2f, %.2f] = '%c'\n", 
-                   map_x, map_y, x, y, type);
-        }
-        
-        // Si c'est un portail, toujours afficher
-        if (type == 'P')
-        {
-            printf("PORTAIL DÉTECTÉ à (%d, %d) [%.2f, %.2f]\n", 
-                   map_x, map_y, x, y);
-        }
-    }
-    else
-    {
-        type = '1';  // Par défaut si hors limites
-    }
-    
-    return type;
+	int	map_x;
+	int	map_y;
+
+	map_x = (int)(x / TILE_SIZE);
+	map_y = (int)(y / TILE_SIZE);
+	if (map_x >= 0 && map_x < map->width && map_y >= 0 && map_y < map->height)
+		return (map->matrix[map_y][map_x]);
+	else
+		return ('1');
 }
 
-// char	get_hit_type(t_map *map, double x, double y)
-// {
-// 	int	map_x;
-// 	int	map_y;
-
-// 	map_x = (int)(x / TILE_SIZE);
-// 	map_y = (int)(y / TILE_SIZE);
-// 	if (map_x >= 0 && map_x < map->width && map_y >= 0 && map_y < map->height)
-// 		return (map->matrix[map_y][map_x]);
-// 	else
-// 		return ('1'); // Par défaut si hors limites
-// }
-
-void store_ray_info(t_game *game, int column_x, double distance, 
-                   double hit_x, double hit_y, int is_vertical, char hit_type)
+void	store_ray_info(t_game *game, int column_x, double distance,
+		double hit_x, double hit_y, int is_vertical, char hit_type)
 {
-    // Si c'est un portail, affiche l'info
-    if (hit_type == 'P')
-    {
-        printf("STOCKAGE D'UN PORTAIL dans ray[%d]: type=%c, dist=%.2f, pos=(%.2f, %.2f)\n", 
-               column_x, hit_type, distance, hit_x, hit_y);
-    }
-    
-    // Même affichage pour quelques colonnes
-    if (column_x % 200 == 0)
-    {
-        printf("store_ray_info[%d]: type=%c, dist=%.2f, pos=(%.2f, %.2f)\n", 
-               column_x, hit_type, distance, hit_x, hit_y);
-    }
-    
-    // Ton code habituel
-    game->rays[column_x].distance = distance;
-    game->rays[column_x].wall_hit_x = hit_x;
-    game->rays[column_x].wall_hit_y = hit_y;
-    game->rays[column_x].hit_vertical = is_vertical;
-    game->rays[column_x].hit_type = hit_type;
-    
-    // Vérification après stockage pour certaines colonnes
-    if (column_x % 200 == 0 || hit_type == 'P')
-    {
-        printf("Après stockage, ray[%d].hit_type = '%c'\n", 
-               column_x, game->rays[column_x].hit_type);
-    }
+	game->rays[column_x].distance = distance;
+	game->rays[column_x].wall_hit_x = hit_x;
+	game->rays[column_x].wall_hit_y = hit_y;
+	game->rays[column_x].hit_vertical = is_vertical;
+	game->rays[column_x].hit_type = hit_type;
 }
-
-// void	store_ray_info(t_game *game, int column_x, double distance,
-// 		double hit_x, double hit_y, int is_vertical, char hit_type)
-// {
-// 	game->rays[column_x].distance = distance;
-// 	game->rays[column_x].wall_hit_x = hit_x;
-// 	game->rays[column_x].wall_hit_y = hit_y;
-// 	game->rays[column_x].hit_vertical = is_vertical;
-// 	game->rays[column_x].hit_type = hit_type;
-// }
 
 double	ray_casting(t_game *game, double radiant_angle, int column_x)
 {
