@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 19:33:13 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 20:07:28 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,22 @@
 # define FOV (M_PI / 3)
 
 typedef struct s_game t_game;
+
+typedef struct s_portal
+{
+    double x;             // Position X dans le monde
+    double y;             // Position Y dans le monde
+    int is_active;        // 1 si le portail est actif, 0 sinon
+    int is_vertical;      // 1 si le portail est sur un mur vertical, 0 si horizontal
+    char surface_type;    // Type de surface ('1' pour mur, 'D' pour porte)
+} t_portal;
+
+typedef struct s_portal_system
+{
+    t_portal portals[2];
+    int portal_count;
+    int next_portal_index;
+} t_portal_system;
 
 typedef struct s_img
 {
@@ -136,15 +152,6 @@ typedef struct s_ray
 	int hit_vertical;
 	char hit_type;
 }					t_ray;
-
-typedef struct s_portal
-{
-    double x;             // Position X dans le monde
-    double y;             // Position Y dans le monde
-    int is_active;        // 1 si le portail est actif, 0 sinon
-    int is_vertical;      // 1 si le portail est sur un mur vertical, 0 si horizontal
-    char surface_type;    // Type de surface ('1' pour mur, 'D' pour porte)
-} t_portal;
 
 typedef struct s_game
 {
@@ -251,5 +258,6 @@ int mouse_move(int x, int y, t_game *game);
 int	mouse_button(int button, int x, int y, t_game *game);
 void calculate_shoot(t_game *game);
 void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray);
+void remove_all_portals(t_game *game);
 
 #endif

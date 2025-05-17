@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 19:34:21 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/17 20:06:43 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,8 +117,10 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.door_texture.bits_per_pixel,
 			&game->map.door_texture.line_length,
 			&game->map.door_texture.endian);
-	game->portal_1.is_active = 0;   // Inactif au début
-	game->portal_2.is_active = 0; // Inactif au début
-	game->portal_count = 1;     // Premier tir = portail bleu
+	game->portal_1.is_active = 0;
+	game->portal_2.is_active = 0;
+	game->portal_count = 0;
+	//game->portal_pos.has_portal1 = 0;
+	//game->portal_pos.has_portal2 = 0;
 	return (1);
 }

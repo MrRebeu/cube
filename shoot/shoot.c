@@ -11,14 +11,19 @@ void calculate_shoot(t_game *game)
     t_ray *center_ray = &game->rays[center_ray_index];
 	if (game->current_weapon == PORTALGUN)
 	{
-        if (center_ray->hit_type == '1')
-        {
-			impact_y = center_ray->wall_hit_y;
-			impact_x = center_ray->wall_hit_x;
-			map_x = (int)(impact_x / TILE_SIZE);
-			map_y = (int)(impact_y / TILE_SIZE);
-			game->map.matrix[map_y][map_x] = 'P';
-        }
+
+		if (center_ray->hit_type == '1')
+		{
+			if (game->portal_count < 2)
+			{
+				impact_y = center_ray->wall_hit_y;
+				impact_x = center_ray->wall_hit_x;
+				map_x = (int)(impact_x / TILE_SIZE);
+				map_y = (int)(impact_y / TILE_SIZE);
+				game->map.matrix[map_y][map_x] = 'P';
+				game->portal_count++;
+			}
+		}
 	}
 	else if (game->current_weapon == RAYGUN)
 	{
@@ -52,5 +57,10 @@ int	mouse_button(int button, int x, int y, t_game *game)
 			calculate_shoot(game);
 		}
 	}
+	else if (button == 3 && game->current_weapon == PORTALGUN)
+	{
+		remove_all_portals(game);
+	}
+
 	return (0);
 }
