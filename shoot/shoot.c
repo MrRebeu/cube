@@ -57,6 +57,13 @@ int	mouse_button(int button, int x, int y, t_game *game)
 			calculate_shoot(game);
 		}
 	}
+	if (button == 4 || button == 5)
+	{
+		if (game->current_weapon == RAYGUN)
+			game->current_weapon = PORTALGUN;
+		else if (game->current_weapon == PORTALGUN)
+			game->current_weapon = RAYGUN;
+	}
 	else if (button == 3 && game->current_weapon == PORTALGUN)
 	{
 		remove_all_portals(game);
