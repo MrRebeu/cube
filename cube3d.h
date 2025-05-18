@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 20:32:58 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:06:13 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,43 @@
 
 typedef struct s_game t_game;
 
+typedef struct s_health_bar
+{
+    int x;
+    int y;
+    int width;
+    int height;
+    int border;
+    unsigned int border_color;
+    unsigned int empty_color;
+    unsigned int health_color;
+} t_health_bar;
+
+typedef struct s_minimap
+{
+    int size;
+    int x;
+    int y;
+    int cell_size;
+    int border;
+    int visible_radius;// Nombre de cellules visibles autour du joueur
+    int show;// 1 = afficher, 0 = masquer
+    
+    unsigned int border_color;
+    unsigned int bg_color;
+    unsigned int wall_color;
+    unsigned int door_color;
+    unsigned int portal_color;
+    unsigned int player_color;
+} t_minimap;
+
 typedef struct s_portal
 {
-    double x;             // Position X dans le monde
-    double y;             // Position Y dans le monde
-    int is_active;        // 1 si le portail est actif, 0 sinon
-    int is_vertical;      // 1 si le portail est sur un mur vertical, 0 si horizontal
-    char surface_type;    // Type de surface ('1' pour mur, 'D' pour porte)
+    double x;
+    double y;
+    int is_active;
+    int is_vertical;
+    char surface_type;
 } t_portal;
 
 typedef struct s_portal_system
@@ -84,18 +114,18 @@ typedef struct s_pnj
 	double			x;
 	double			y;
 	t_img			*texture;
-	double			distance; // Distance au joueur (à calculer à chaque frame)
+	double			distance;
 	int				active;
 }					t_pnj;
 
 typedef struct s_player
 {
-	double x;       // Position X du joueur
-	double y;       // Position Y du joueur
-	double angle;   // Angle de vision du joueur
-	double fov;     // Champ de vision (Field of View)
-	int move_speed; // Vitesse de déplacement
-	int rot_speed;  // Vitesse de rotation
+	double x;
+	double y;
+	double angle;
+	double fov;
+	int move_speed;
+	int rot_speed;
 
 	bool			key_down;
 	bool			key_up;
@@ -108,7 +138,7 @@ typedef struct s_player
 	bool			right;
 	t_game			*game;
 	int				current_weapon;
-
+	int				health;
 	int				is_firing;
 	int				fire_cooldown;
 }					t_player;
@@ -130,16 +160,17 @@ typedef struct s_env
 
 typedef struct s_map
 {
-	char **matrix; // Données de la carte
-	int width;     // Largeur de la carte en cellules
-	int height;    // Hauteur de la carte en cellules
+	char **matrix;
+	int width;
+	int height;
 	t_img			floor_texture;
 	t_img			wall_texture;
+	t_img			wall_shooted_texture;
 	t_img			door_texture;
 	t_img			wall_portal_texture;
-	t_img arm_1;  // Image de l'arme
-	int x_player; // Position X du joueur
-	int y_player; // Position Y du joueur
+	t_img arm_1;
+	int x_player;
+	int y_player;
 }					t_map;
 
 typedef struct s_ray
@@ -155,20 +186,21 @@ typedef struct s_ray
 
 typedef struct s_game
 {
-	void *mlx;       // Pointeur MLX
-	void *win;       // Pointeur vers la fenêtre
-	t_img screen;    // Image de l'écran principal
-	t_map map;       // Données de la carte
-	t_player player; // Données du joueur
+	void *mlx;
+	void *win;
+	t_img screen;
+	t_map map;
+	t_player player;
 	t_img			weapons[2];
-	// Tableau pour les armes (vous pouvez ajouter plus d'armes)
-	int current_weapon;        // Indice de l'arme actuellement équipée
-	t_ray rays[DISPLAY_WIDTH]; // Résultats du raycasting pour chaque colonne
+	int current_weapon;
+	t_ray rays[DISPLAY_WIDTH];
 	t_pnj pnj;
-    t_portal portal_1;     // Portail bleu
+    t_portal portal_1;
     t_portal portal_2;
-	int			portal_count; // 1 si deja un portail , 0 si zero portail 
+	int			portal_count;
 	int pitch;
+	t_minimap minimap;
+	t_health_bar health_bar;
 }					t_game;
 
 typedef struct s_render
@@ -204,12 +236,12 @@ typedef struct s_render
 
 typedef struct s_sprite
 {
-    double x;           // Position X du sprite dans le monde
-    double y;           // Position Y du sprite dans le monde
-    int texture_id;     // ID de la texture à utiliser
-    double distance;    // Distance au joueur (calculée dynamiquement)
-    double angle;       // Angle par rapport au joueur (calculé dynamiquement)
-    double size;        // Taille à l'écran (calculée dynamiquement)
+    double x;
+    double y;
+    int texture_id;
+    double distance;
+    double angle;
+    double size;
 } t_sprite;
 
 
@@ -237,7 +269,7 @@ int					validate_map(t_map *map);
 
 int					init_game(t_game *game, char *map_file);
 
-// render
+
 void render_wall(t_game *game, int column_x, t_render *r, t_ray *ray);
 void				render_floor(t_game *game, int column_x, t_render *r);
 void				render_sky(t_game *game, int column_x, t_render *r);
@@ -260,5 +292,12 @@ int	mouse_button(int button, int x, int y, t_game *game);
 void calculate_shoot(t_game *game);
 void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 void remove_all_portals(t_game *game);
+void draw_health_bar(t_game *game);
+void minimap(t_game *game);
+void init_minimap(t_game *game);
+void init_health_bar(t_game *game);
+void render_wall_shooted(t_game *game, int column_x, t_render *renderer, t_ray *ray);
+
+
 
 #endif

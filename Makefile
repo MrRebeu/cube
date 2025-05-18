@@ -9,12 +9,13 @@ RAYCASTER_SRC = raycaster/raycasting.c raycaster/ray_utils.c
 MAP_SRC = map/map_parser.c
 PLAYER_SRC = player/player_move.c
 PNJ_SRC = pnj/pnj.c
-RENDER_SRC = render/render.c render/render_env.c render/render_ui.c
+RENDER_SRC = render/render.c render/render_env.c render/render_ui.c render/render_minimap.c render/render_health_bar.c
 GNL_SRC = gnl/get_next_line.c gnl/get_next_line_utils.c
 SHOOT_SRC = shoot/shoot.c
 PORTAL_SRC = portal/portal.c
+INIT_SRC = init/init_minimap.c init/init_health_bar.c
 
-SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(PNJ_SRC) $(SHOOT_SRC) $(PORTAL_SRC)
+SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(PNJ_SRC) $(SHOOT_SRC) $(PORTAL_SRC) $(INIT_SRC)
 
 OBJS = $(SRCS:.c=.o)
 RM = rm -f

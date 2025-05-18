@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 19:40:13 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 17:07:20 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,8 @@ void render_scene(t_game *game)
 void render_ui(t_game *game)
 {
     render_weapon(game);
+    draw_health_bar(game);
+    minimap(game);
 }
 
 int loop_game(t_game *game)

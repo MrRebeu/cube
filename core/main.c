@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 06:21:21 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/18 15:51:39 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ void init_player(t_player *player)
 	player->right_rotate = false;
 	player->turn_back = false;
 	player->current_weapon = PORTALGUN;
+	player->health = 100;
 
 	// player->is_firing = 0;
 	// player->fire_cooldown = 0;

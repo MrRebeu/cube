@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   player_move.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 20:12:19 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/18 17:19:14 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,10 @@ int	key_press(int keycode, t_player *player)
 		if (player->game)
 			player->game->current_weapon = RAYGUN;
 	}
-	// Vérification des limites
+	// if (keycode == 101)
+	// {
+	// 	try_open_door(game);
+	// }
 	// if (player->current_weapon >= MAX_WEAPONS)
 	//     player->current_weapon = 0;
 	return (0);

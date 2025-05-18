@@ -27,21 +27,35 @@ void calculate_shoot(t_game *game)
 	}
 	else if (game->current_weapon == RAYGUN)
 	{
-			printf("Tir Ray Gun! Type touché: %c, Distance: %f\n", 
-               center_ray->hit_type, center_ray->distance);
+		if (center_ray->hit_type == '1')
+		{
+			impact_y = center_ray->wall_hit_y;		
+			impact_x = center_ray->wall_hit_x;
+			map_x = (int)(impact_x / TILE_SIZE);
+			map_y = (int)(impact_y / TILE_SIZE);
+			game->map.matrix[map_y][map_x] = 'i';
+		}
+		// else if (center_ray->hit_type == 'D')
+		// {
+		// 	impact_y = center_ray->wall_hit_y;		
+		// 	impact_x = center_ray->wall_hit_x;
+		// 	map_x = (int)(impact_x / TILE_SIZE);
+		// 	map_y = (int)(impact_y / TILE_SIZE);
+		// 	game->map.matrix[map_y][map_x] = 'd';
+		// }
+		// 	printf("Tir Ray Gun! Type touché: %c, Distance: %f\n", 
+        //        center_ray->hit_type, center_ray->distance);
         
-        if (center_ray->hit_type == 'D')
-        {
+        // if (center_ray->hit_type == '1')
+        // {
 			
-            printf("La porte a été endommagée!\n");
-        }
-        else if (center_ray->hit_type == 'M')
-        {
-            printf("Ennemi touché!\n");
-        }
+        //     printf("La porte a été endommagée!\n");
+        // }
+        // else if (center_ray->hit_type == 'M')
+        // {
+        //     printf("Ennemi touché!\n");
+        // }
 	}
-    // printf("Tir! Type touché: %c, Distance: %f\n", 
-    //        center_ray->hit_type, center_ray->distance);
 }
 
 int	mouse_button(int button, int x, int y, t_game *game)

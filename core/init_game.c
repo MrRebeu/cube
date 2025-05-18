@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/17 20:06:43 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:03:19 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,10 +117,43 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.door_texture.bits_per_pixel,
 			&game->map.door_texture.line_length,
 			&game->map.door_texture.endian);
+
+	game->map.door_shooted_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/door_shooted.xpm",
+			&width, &height);
+	if (!game->map.door_shooted_texture.ptr)
+	{
+		printf("problem avec door_shooted.xpm");
+		return (0);
+	}
+	game->map.door_shooted_texture.width = width;
+	game->map.door_shooted_texture.height = height;
+	game->map.door_shooted_texture.addr = mlx_get_data_addr(game->map.door_shooted_texture.ptr,
+			&game->map.door_shooted_texture.bits_per_pixel,
+			&game->map.door_shooted_texture.line_length,
+			&game->map.door_shooted_texture.endian);
+
+			
+
+	game->map.wall_shooted_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/wall_shooted.xpm",
+			&width, &height);
+	if (!game->map.wall_shooted_texture.ptr)
+	{
+		printf("problem avec wall_shooted.xpm");
+		return (0);
+	}
+	game->map.wall_shooted_texture.width = width;
+	game->map.wall_shooted_texture.height = height;
+	game->map.wall_shooted_texture.addr = mlx_get_data_addr(game->map.wall_shooted_texture.ptr,
+			&game->map.wall_shooted_texture.bits_per_pixel,
+			&game->map.wall_shooted_texture.line_length,
+			&game->map.wall_shooted_texture.endian);
+			
 	game->portal_1.is_active = 0;
 	game->portal_2.is_active = 0;
 	game->portal_count = 0;
 	//game->portal_pos.has_portal1 = 0;
 	//game->portal_pos.has_portal2 = 0;
+	init_minimap(game);
+	init_health_bar(game);
 	return (1);
 }
