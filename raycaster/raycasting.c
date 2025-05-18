@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   raycasting.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 06:28:28 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:15:02 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,8 @@ int	is_not_wall(t_map *map, double x, double y)
 	if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
 		return (0);
 	if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D'
-		|| map->matrix[map_y][map_x] == 'P')
+		|| map->matrix[map_y][map_x] == 'P' || map->matrix[map_y][map_x] == 'i'
+		|| map->matrix[map_y][map_x] == 'd')
 		return (0);
 	else
 		return (1);

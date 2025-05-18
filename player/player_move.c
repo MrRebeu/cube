@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 17:19:14 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:33:20 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ int	key_press(int keycode, t_player *player)
 	}
 	// if (keycode == 101)
 	// {
-	// 	try_open_door(game);
+	// 	try_open_door(??);
 	// }
 	// if (player->current_weapon >= MAX_WEAPONS)
 	//     player->current_weapon = 0;

@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 15:51:39 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:46:18 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,10 @@ void init_player(t_player *player)
 	player->turn_back = false;
 	player->current_weapon = PORTALGUN;
 	player->health = 100;
+    player->weapon.current_state = WEAPON_NEUTRE;
+    player->weapon.frame = 0;
+    player->weapon.frame_delay = 0;
+    player->weapon.is_firing = 0;
 
 	// player->is_firing = 0;
 	// player->fire_cooldown = 0;

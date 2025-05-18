@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:05:35 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:14:46 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_wall_portal(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'D')
         render_door(game, column_x, &renderer, ray);
+    else if (ray->hit_type == 'i')
+        render_wall_shooted(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'd')
         render_door_shooted(game, column_x, &renderer, ray);
     else

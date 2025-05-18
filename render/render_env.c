@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:04:20 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:45:44 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,32 @@ void render_weapon(t_game *game)
     t_img *weapon;
     char *dst;
 
-    weapon = &game->weapons[game->current_weapon];
+    weapon = &game->weapons[game->current_weapon][game->player.weapon_frame];
     renderer.x = (DISPLAY_WIDTH - weapon->width) + 180;  // Weapon X position
     renderer.y = (DISPLAY_HEIGHT - weapon->height) + 250 + game->pitch;  // Weapon Y position
 
+    game->player.weapon_frame_delay++;
+    if (game->player.weapon_frame_delay > 5)// change with speed wanted
+    {
+        if (game->player.weapon.current_state == WEAPON_PREFIRE)
+        {
+            game->player.weapon.frame = 2;
+            game->player.weapon.current_state = WEAPON_FIRE;
+            game->player.weapon.frame_delay = 10;
+        }
+        else if (game->player.weapon.current_state == WEAPON_FIRE)
+        {
+            game->player.weapon.frame = 1;
+            game->player.weapon.current_state = WEAPON_POSTFIRE;
+            game->player.weapon.frame_delay = 10;
+        }
+        else if (game->player.weapon.current_state == WEAPON_POSTFIRE)
+        {
+            game->player.weapon.frame = 0;
+            game->player.weapon.current_state = WEAPON_NEUTRE;
+            game->player.weapon.is_firing = 0;
+        }
+    }
     /* Draw weapon image pixel by pixel */
     renderer.tex_y = 0;
     while (renderer.tex_y < weapon->height)
@@ -102,6 +124,44 @@ void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *r
             renderer->tex_addr = game->map.wall_portal_texture.addr
                 + (texture_y * game->map.wall_portal_texture.line_length
                    + renderer->tex_x * (game->map.wall_portal_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
+
+            /* Scrive sul buffer video */
+            renderer->screen_pixel = game->screen.addr
+                + (renderer->y * game->screen.line_length
+                   + column_x * (game->screen.bits_per_pixel / 8));
+            *(unsigned int *)renderer->screen_pixel = renderer->color;
+        }
+        renderer->y++;
+    }
+}
+
+void render_door_shooted(t_game *game, int column_x, t_render *renderer, t_ray *ray)
+{
+    int   CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H  = renderer->wall_height;
+    int   texture_y;
+
+    /* Calcolo tex_x in base al punto d’impatto */
+    if (ray->hit_vertical)
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+    else
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+
+    renderer->y = renderer->draw_start;
+    while (renderer->y <= renderer->draw_end)
+    {
+        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
+        {
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0)           texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
+
+            /* Preleva il pixel dalla texture del portale */
+            renderer->tex_addr = game->map.door_shooted_texture.addr
+                + (texture_y * game->map.door_shooted_texture.line_length
+                   + renderer->tex_x * (game->map.door_shooted_texture.bits_per_pixel / 8));
             renderer->color = *(unsigned int *)renderer->tex_addr;
 
             /* Scrive sul buffer video */

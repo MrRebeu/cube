@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:06:13 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:43:52 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,21 @@
 # define DISPLAY_HEIGHT 1080
 # define FOV (M_PI / 3)
 
+/// shooting anim test
+
+#define WEAPON_NEUTRE 0
+#define WEAPON_PREFIRE 1
+#define WEAPON_FIRE 2
+#define WEAPON_POSTFIRE 1  // same image of PREFIRE
+
 typedef struct s_game t_game;
+
+typedef struct s_weapon_state {
+    int current_state;       // État actuel de l'arme
+    int frame;               // Frame courante
+    int frame_delay;         // Délai entre les frames
+    int is_firing;           // Indique si l'arme est en train de tirer
+} t_weapon_state;
 
 typedef struct s_health_bar
 {
@@ -141,6 +155,8 @@ typedef struct s_player
 	int				health;
 	int				is_firing;
 	int				fire_cooldown;
+
+	t_weapon_state weapon;
 }					t_player;
 
 typedef struct s_intersect
@@ -167,6 +183,7 @@ typedef struct s_map
 	t_img			wall_texture;
 	t_img			wall_shooted_texture;
 	t_img			door_texture;
+	t_img			door_shooted_texture;
 	t_img			wall_portal_texture;
 	t_img arm_1;
 	int x_player;
@@ -297,7 +314,7 @@ void minimap(t_game *game);
 void init_minimap(t_game *game);
 void init_health_bar(t_game *game);
 void render_wall_shooted(t_game *game, int column_x, t_render *renderer, t_ray *ray);
-
+void render_door_shooted(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 
 
 #endif
