@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:43:52 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 18:56:16 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ typedef struct s_game
 	t_img screen;
 	t_map map;
 	t_player player;
-	t_img			weapons[2];
+	t_img weapons[MAX_WEAPONS][3];
 	int current_weapon;
 	t_ray rays[DISPLAY_WIDTH];
 	t_pnj pnj;

@@ -6,43 +6,46 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 15:55:05 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:45:44 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 19:10:29 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../cube3d.h"
 
-// FOR PISTO PORTAL
 void render_weapon(t_game *game)
 {
     t_render renderer;
     t_img *weapon;
     char *dst;
 
-    weapon = &game->weapons[game->current_weapon][game->player.weapon_frame];
+    weapon = &game->weapons[game->current_weapon][game->player.weapon.frame];
     renderer.x = (DISPLAY_WIDTH - weapon->width) + 180;  // Weapon X position
     renderer.y = (DISPLAY_HEIGHT - weapon->height) + 250 + game->pitch;  // Weapon Y position
 
-    game->player.weapon_frame_delay++;
-    if (game->player.weapon_frame_delay > 5)// change with speed wanted
+    if (game->player.weapon.is_firing)
     {
-        if (game->player.weapon.current_state == WEAPON_PREFIRE)
+        game->player.weapon.frame_delay--;
+        if (game->player.weapon.frame_delay <= 0)
         {
-            game->player.weapon.frame = 2;
-            game->player.weapon.current_state = WEAPON_FIRE;
-            game->player.weapon.frame_delay = 10;
-        }
-        else if (game->player.weapon.current_state == WEAPON_FIRE)
-        {
-            game->player.weapon.frame = 1;
-            game->player.weapon.current_state = WEAPON_POSTFIRE;
-            game->player.weapon.frame_delay = 10;
-        }
-        else if (game->player.weapon.current_state == WEAPON_POSTFIRE)
-        {
-            game->player.weapon.frame = 0;
-            game->player.weapon.current_state = WEAPON_NEUTRE;
-            game->player.weapon.is_firing = 0;
+            if (game->player.weapon.current_state == WEAPON_PREFIRE)
+            {
+                game->player.weapon.frame = 2;
+                game->player.weapon.current_state = WEAPON_FIRE;
+                game->player.weapon.frame_delay = 2;
+            }
+            else if (game->player.weapon.current_state == WEAPON_FIRE)
+            {
+                game->player.weapon.frame = 1;
+                game->player.weapon.current_state = WEAPON_POSTFIRE;
+                game->player.weapon.frame_delay = 2;
+            }
+            else if (game->player.weapon.current_state == WEAPON_POSTFIRE)
+            {
+                game->player.weapon.frame = 0;
+                game->player.weapon.current_state = WEAPON_NEUTRE;
+                game->player.weapon.is_firing = 0;
+                game->player.weapon.frame_delay = 0;
+            }
         }
     }
     /* Draw weapon image pixel by pixel */

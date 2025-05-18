@@ -6,34 +6,39 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:53:06 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 19:05:11 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cube3d.h"
 
-int load_weapon_textures(void *mlx, t_img *weapon_textures)
+int load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 {
     int width, height;
-    char *texture_paths[] = {
-        "./texture/w_raygun_neutre.xpm",    // Frame 0
-        "./texture/w_raygun_prefire.xpm",   // Frame 1
-        "./texture/w_raygun_fire.xpm"       // Frame 2
+    char *texture_paths[MAX_WEAPONS][3] = {
+        { // RAYGUN
+            "./texture/w_raygun.xpm",
+            "./texture/w_raygun_prefire.xpm",
+            "./texture/w_raygun_fire.xpm"
+        },
+        { // PORTALGUN
+            "./texture/w_portalgun.xpm",
+            "./texture/w_portalgun.xpm", // Utilisez la même pour l'instant
+            "./texture/w_portalgun.xpm"  // Utilisez la même pour l'instant
+        }
     };
     
     int i = 0;
     while (i < 3)
     {
-        weapon_textures[i].ptr = mlx_xpm_file_to_image(mlx, texture_paths[i], &width, &height);
+        weapon_textures[i].ptr = mlx_xpm_file_to_image(mlx, texture_paths[weapon_type][i], &width, &height);
         
-        // Vérifier si le chargement a réussi
         if (!weapon_textures[i].ptr)
         {
-            printf("Erreur de chargement de la texture : %s\n", texture_paths[i]);
+            printf("Erreur de chargement de la texture : %s\n", texture_paths[weapon_type][i]);
             return (0);
         }
 
-        // Récupérer les informations de la texture
         weapon_textures[i].addr = mlx_get_data_addr(
             weapon_textures[i].ptr,
             &weapon_textures[i].bits_per_pixel,
@@ -41,7 +46,6 @@ int load_weapon_textures(void *mlx, t_img *weapon_textures)
             &weapon_textures[i].endian
         );
 
-        // Stocker les dimensions
         weapon_textures[i].width = width;
         weapon_textures[i].height = height;
 
@@ -50,7 +54,6 @@ int load_weapon_textures(void *mlx, t_img *weapon_textures)
 
     return (1);
 }
-
 int	init_game(t_game *game, char *map_file)
 {
 	int	width;
@@ -122,7 +125,7 @@ int	init_game(t_game *game, char *map_file)
 			&game->map.floor_texture.bits_per_pixel,
 			&game->map.floor_texture.line_length,
 			&game->map.floor_texture.endian);
-	if (!load_weapon_textures(game->mlx, &game->weapons[RAYGUN]))
+	if (!load_weapon_textures(game->mlx, game->weapons[RAYGUN], RAYGUN))
 	{
 		printf("Erreur de chargement des textures du Ray Gun\n");
 		return (0);
@@ -137,16 +140,11 @@ int	init_game(t_game *game, char *map_file)
 	// 		&game->weapons[RAYGUN].bits_per_pixel, &game->weapons[RAYGUN].line_length,
 	// 		&game->weapons[RAYGUN].endian);
 
-	game->weapons[PORTALGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_portalgun.xpm",
-			&width, &height);
-	if (!game->weapons[PORTALGUN].ptr)
+	if (!load_weapon_textures(game->mlx, game->weapons[PORTALGUN], PORTALGUN))
+	{
+		printf("Erreur de chargement des textures du Portal Gun\n");
 		return (0);
-	game->weapons[PORTALGUN].width = width;
-	game->weapons[PORTALGUN].height = height;
-	game->weapons[PORTALGUN].addr = mlx_get_data_addr(game->weapons[PORTALGUN].ptr,
-			&game->weapons[PORTALGUN].bits_per_pixel, &game->weapons[PORTALGUN].line_length,
-			&game->weapons[PORTALGUN].endian);
-			
+	}
 	game->map.door_texture.ptr = mlx_xpm_file_to_image(game->mlx, "./texture/door.xpm",
 			&width, &height);
 	if (!game->map.door_texture.ptr)

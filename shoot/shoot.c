@@ -73,7 +73,6 @@ int	mouse_button(int button, int x, int y, t_game *game)
 
             calculate_shoot(game);
         }
-		}
 	}
 	if (button == 4 || button == 5)
 	{
