@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 19:05:11 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 19:35:34 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,17 @@
 int load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 {
     int width, height;
-    char *texture_paths[MAX_WEAPONS][3] = {
-        { // RAYGUN
+    char *texture_paths[MAX_WEAPONS][3] =
+	{
+        {
             "./texture/w_raygun.xpm",
             "./texture/w_raygun_prefire.xpm",
             "./texture/w_raygun_fire.xpm"
-        },
-        { // PORTALGUN
+    },
+        {
             "./texture/w_portalgun.xpm",
-            "./texture/w_portalgun.xpm", // Utilisez la même pour l'instant
-            "./texture/w_portalgun.xpm"  // Utilisez la même pour l'instant
+            "./texture/w_portalgun.xpm",
+            "./texture/w_portalgun.xpm"
         }
     };
     
@@ -130,16 +131,7 @@ int	init_game(t_game *game, char *map_file)
 		printf("Erreur de chargement des textures du Ray Gun\n");
 		return (0);
 	}
-	// game->weapons[RAYGUN].ptr = mlx_xpm_file_to_image(game->mlx, "./texture/w_raygun.xpm",
-	// 		&width, &height);
-	// if (!game->weapons[RAYGUN].ptr)
-	// 	return (0);
-	// game->weapons[RAYGUN].width = width;
-	// game->weapons[RAYGUN].height = height;
-	// game->weapons[RAYGUN].addr = mlx_get_data_addr(game->weapons[RAYGUN].ptr,
-	// 		&game->weapons[RAYGUN].bits_per_pixel, &game->weapons[RAYGUN].line_length,
-	// 		&game->weapons[RAYGUN].endian);
-
+	
 	if (!load_weapon_textures(game->mlx, game->weapons[PORTALGUN], PORTALGUN))
 	{
 		printf("Erreur de chargement des textures du Portal Gun\n");
