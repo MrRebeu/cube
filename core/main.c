@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/16 19:44:37 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/18 06:21:21 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ void init_player(t_player *player)
 {
 	player->x = DISPLAY_WIDTH / 2;
 	player->y = DISPLAY_HEIGHT / 2;
-	player->angle = M_PI / 2;
+	player->angle = M_PI / 3;
 	player->fov = player->angle;
 	player->key_up = false;
 	player->key_down = false;
