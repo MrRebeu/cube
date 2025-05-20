@@ -56,7 +56,7 @@ int	calculate_filled_width(t_game *game)
 
 	life_bar = &game->health_bar;
 	max_health = 100;
-	current_health = game->player.health;
+	current_health = game->player.health - 50;
 	if (current_health < 0)
 		current_health = 0;
 	if (current_health > max_health)

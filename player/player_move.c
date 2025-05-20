@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   player_move.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 18:33:20 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/20 23:20:06 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ int	key_release(int keycode, t_player *player)
 
 int	key_press(int keycode, t_player *player)
 {
-	printf("Keycode pressed: %d\n", keycode);
 	if (keycode == ESC)
 		close_window(NULL);
 	if (keycode == W)
@@ -123,47 +122,49 @@ int	is_wall(t_game *game, float x, float y)
 
 void	move_player(t_player *player)
 {
-	float	angle_speed;
-	float	speed;
-	float	cos_angle;
-	float	sin_angle;
+	float	angle_speed = 0.05;
+	float	speed = 10.0;
 	float	new_x;
 	float	new_y;
 	float	strafe_angle;
 
-
-	angle_speed = 0.05;
-	speed = 10.0;
-	cos_angle = cos(player->angle);
-	sin_angle = sin(player->angle);
+	// Rotazione
 	if (player->left_rotate)
 		player->angle -= angle_speed;
 	if (player->right_rotate)
 		player->angle += angle_speed;
 	if (player->turn_back)
 		player->angle += M_PI;
+
+	// Normalizzazione angolo
 	while (player->angle < 0)
 		player->angle += 2 * M_PI;
 	while (player->angle >= 2 * M_PI)
 		player->angle -= 2 * M_PI;
+
+	update_camera_vectors(player); // ⚠️ aggiorna dir_ e plane_
+
+	// Avanti
 	if (player->key_up)
 	{
-		new_x = player->x + cos_angle * speed;
-		new_y = player->y + sin_angle * speed;
+		new_x = player->x + player->dir_x * speed;
+		new_y = player->y + player->dir_y * speed;
 		if (player->game && is_not_wall(&player->game->map, new_x, player->y))
 			player->x = new_x;
 		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
+	// Indietro
 	if (player->key_down)
 	{
-		new_x = player->x - cos_angle * speed;
-		new_y = player->y - sin_angle * speed;
+		new_x = player->x - player->dir_x * speed;
+		new_y = player->y - player->dir_y * speed;
 		if (player->game && is_not_wall(&player->game->map, new_x, player->y))
 			player->x = new_x;
 		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
+	// Strafe a sinistra
 	if (player->key_left)
 	{
 		strafe_angle = player->angle - M_PI / 2;
@@ -174,6 +175,7 @@ void	move_player(t_player *player)
 		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
+	// Strafe a destra
 	if (player->key_right)
 	{
 		strafe_angle = player->angle + M_PI / 2;
@@ -185,3 +187,4 @@ void	move_player(t_player *player)
 			player->y = new_y;
 	}
 }
+

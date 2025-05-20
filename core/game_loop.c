@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_loop.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 19:33:57 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/20 23:19:16 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,16 @@ int	render_next_frame(t_game *game)
 	double		ray_offset;
 	double		radiant_angle;
 	static int	anim_frames = 0;
+	int			j;
 
 	move_player(&game->player);
+	i = 0;
+	while (i < game->num_enemies)
+	{
+		if (game->enemies[i].active)
+			update_enemy(&game->enemies[i], &game->player, &game->map);
+		i++;
+	}
 	i = 0;
 	while (i < DISPLAY_WIDTH)
 	{
@@ -56,12 +64,19 @@ int	render_next_frame(t_game *game)
 	if (game->player.fire_cooldown > 0)
 		game->player.fire_cooldown--;
 	render_scene(game);
-	// render_pnj(game);
+	j = 0;
+	while (j < game->num_enemies)
+	{
+		if (game->enemies[j].active)
+			render_enemy(game, &game->enemies[j]);
+		j++;
+	}
 	draw_crosshair(game);
 	mlx_put_image_to_window(game->mlx, game->win, game->screen.ptr, 0, 0);
 	render_ui(game);
 	return (0);
 }
+
 
 void	render_scene(t_game *game)
 {

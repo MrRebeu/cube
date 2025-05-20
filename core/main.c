@@ -3,33 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/18 19:35:04 by abkhefif         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
 /*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:25:20 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/07 01:49:33 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/20 21:48:44 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cube3d.h"
 
-void init_player(t_player *player)
+void	init_player(t_player *player)
 {
 	player->x = DISPLAY_WIDTH / 2;
 	player->y = DISPLAY_HEIGHT / 2;
 	player->angle = M_PI / 3;
 	player->fov = player->angle;
+	update_camera_vectors(player);
 	player->key_up = false;
 	player->key_down = false;
 	player->key_right = false;
@@ -39,10 +28,10 @@ void init_player(t_player *player)
 	player->turn_back = false;
 	player->current_weapon = PORTALGUN;
 	player->health = 100;
-    player->weapon.current_state = WEAPON_NEUTRE;
-    player->weapon.frame = 0;
-    player->weapon.frame_delay = 0;
-    player->weapon.is_firing = 0;
+	player->weapon.current_state = WEAPON_NEUTRE;
+	player->weapon.frame = 0;
+	player->weapon.frame_delay = 0;
+	player->weapon.is_firing = 0;
 	player->fire_cooldown = 0;
 }
 
@@ -77,7 +66,6 @@ int	main(int argc, char **argv)
 		game.rays[i].distance = ray_casting(&game, radiant_angle, i);
 		i++;
 	}
-    loop_game(&game);
-
+	loop_game(&game);
 	return (0);
 }
