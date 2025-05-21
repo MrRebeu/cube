@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cube3d.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/20 21:55:50 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/21 12:47:56 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,5 +360,5 @@ void					draw_enemy_sprite(t_game *game, t_img *sprite,
 							t_point pos, int size);
 int						set_enemy_pos(t_game *game);
 void					update_camera_vectors(t_player *player);
-
+void	check_interact_door(t_game *t_game);
 #endif
