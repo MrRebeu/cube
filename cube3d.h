@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 15:52:03 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 17:35:46 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,6 +245,8 @@ typedef struct s_game
 	t_img				weapons[MAX_WEAPONS][3];
 	int					current_weapon;
 	t_ray				rays[DISPLAY_WIDTH];
+	double depth_buffer[DISPLAY_WIDTH];
+
 	t_enemy				*enemies;
 	int					num_enemies;
 	t_portal			portal_1;
@@ -372,6 +374,16 @@ int is_near_portal(t_game *game, t_portal *portal);
 void teleport_player(t_game *game, t_portal *to_portal);
 void check_portal_teleport(t_game *game);
 void update_portal_positions(t_game *game);
+
+int set_enemy_pos(t_game *game);
+void update_camera_vectors(t_player *player);
+void draw_minimap_cone(t_game *game);
+void idle(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
+void shoot(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
+void search(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
+void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
+void damage_enemy_at_position(t_game *game, double x, double y, int damage);
+
 
 int is_door_transparent_at_point(t_game *game, double x, double y);
 #endif
