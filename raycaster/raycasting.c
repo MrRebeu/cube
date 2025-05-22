@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 15:51:41 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 17:04:30 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,57 @@
 int door_hit_check(double x, double y, char cell_type);
 
 int is_door_transparent_at_point(t_game *game, double x, double y);
+
+int is_door_texture_transparent_at_position(t_game *game, double hit_y, char door_type)
+{
+    // Calculer tex_x et tex_y pour cette position
+    int tex_x = TILE_SIZE / 2; // Centre horizontal (thin wall)
+    int tex_y = ((int)hit_y) % TILE_SIZE;
+    
+    // Clamp les valeurs
+    if (tex_y < 0) tex_y = 0;
+    else if (tex_y >= TILE_SIZE) tex_y = TILE_SIZE - 1;
+    
+    // Choisir la texture selon le type
+    t_img *texture;
+    if (door_type == 'd')
+        texture = &game->map.door_shooted_texture;
+    else
+        texture = &game->map.door_texture;
+    
+    // Lire le pixel de la texture
+    char *tex_addr = texture->addr
+        + (tex_y * texture->line_length
+           + tex_x * (texture->bits_per_pixel / 8));
+    unsigned int color = *(unsigned int *)tex_addr;
+    
+    // Vérifier si c'est rouge (transparent)
+    unsigned int red = (color >> 16) & 0xFF;
+    unsigned int green = (color >> 8) & 0xFF;
+    unsigned int blue = color & 0xFF;
+    
+    return (red > 200 && green < 50 && blue < 50);
+}
+
+int ray_intersects_vertical_line(double ray_start_x, double ray_start_y, 
+                                 double ray_angle, double line_x, 
+                                 double *hit_x, double *hit_y)
+{
+    // Si le rayon est parfaitement horizontal, pas d'intersection possible
+    if (fabs(cos(ray_angle)) < 0.000001)
+        return (0);
+    
+    // Calculer le point d'intersection
+    *hit_x = line_x;
+    *hit_y = ray_start_y + (line_x - ray_start_x) * tan(ray_angle);
+    
+    // Vérifier que l'intersection est dans la bonne direction
+    double dx = *hit_x - ray_start_x;
+    if ((cos(ray_angle) > 0 && dx < 0) || (cos(ray_angle) < 0 && dx > 0))
+        return (0);
+    
+    return (1);
+}
 
 int is_door_transparent_at_point(t_game *game, double x, double y)
 {
@@ -130,13 +181,11 @@ int is_not_wall(t_map *map, double x, double y)
         
     cell_type = map->matrix[map_y][map_x];
     
-    // Vérification spéciale pour les portes
+    // Pour les portes, les traiter comme des espaces vides (le thin wall est géré ailleurs)
     if (cell_type == 'D' || cell_type == 'd')
-    {
-        return !door_hit_check(x, y, cell_type);
-    }
+        return (1); // Laisser passer, thin wall géré dans ray_casting()
     
-    // Pour les autres types de cellules, comportement normal
+    // Pour les autres types
     if (cell_type == '1' || cell_type == 'P' || cell_type == 'i')
         return (0);
     else
@@ -155,26 +204,17 @@ int door_hit_check(double x, double y, char cell_type)
 {
 	(void)y;
     if (cell_type != 'D' && cell_type != 'd')
-        return (0); // Pas une porte
+        return (0);
         
-    // Calculer position relative dans la cellule
+    // Position relative dans la cellule (0.0 à 1.0)
     int map_x = (int)(x / TILE_SIZE);
-    //int map_y = (int)(y / TILE_SIZE);
     double rel_x = x / TILE_SIZE - map_x;
-    //double rel_y = y / TILE_SIZE - map_y;
     
-    // Pattern de porte avec barreaux (détection uniquement sur les barreaux)
-    // Par exemple, détecter seulement si on est sur un barreau tous les 0.2 unités
-    double bar_width = 0.02; // Largeur d'un barreau (2% de la cellule)
-    double bar_spacing = 0.2; // Espacement entre barreaux (20% de la cellule)
-    
-    // Vérifier si on est sur un barreau vertical
-    for (double bar_pos = 0.1; bar_pos < 0.9; bar_pos += bar_spacing) {
-        if (fabs(rel_x - bar_pos) < bar_width)
-            return (1); // Collision avec un barreau
-    }
-    
-    return (0); // Pas de collision, le rayon traverse entre les barreaux
+    // Ouverture au centre : de 0.3 à 0.7 (40% d'ouverture)
+    if (rel_x >= 0.3 && rel_x <= 0.7)
+        return (0); // Pas de collision = rayon passe à travers
+    else
+        return (1); // Collision avec le cadre de la porte
 }
 
 char get_hit_type(t_map *map, double x, double y)
@@ -216,6 +256,7 @@ void	store_ray_info(t_game *game, int column_x, double distance,
 	game->rays[column_x].hit_type = hit_type;
 }
 
+
 double ray_casting(t_game *game, double radiant_angle, int column_x)
 {
     t_intersect v;
@@ -227,18 +268,94 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
     double      dist_h;
     char        hit_type_v;
     char        hit_type_h;
-
-    // Initialiser le second hit
-    game->rays[column_x].has_second_hit = 0;
+    
+    // Variables pour thin walls
+    double      thin_wall_dist = INFINITY;
+    double      thin_wall_hit_x = 0;
+    double      thin_wall_hit_y = 0;
+    char        thin_wall_type = '0';
+    int         thin_wall_found = 0;
 
     radiant_angle = normalize_angle(radiant_angle);
+    
+    // OPTIMISATION 1: Augmenter le step_size et réduire max_distance
+    double current_x = game->player.x;
+    double current_y = game->player.y;
+    double step_size = 4.0; // CHANGÉ: 1.0 → 4.0 (4x plus rapide)
+    double max_search_distance = 800.0; // CHANGÉ: 2000.0 → 800.0 (2.5x plus rapide)
+    
+    // OPTIMISATION 2: Limiter le nombre d'itérations
+    int max_thin_wall_iterations = 200; // Maximum 200 itérations au lieu de 2000
+    int thin_wall_iter = 0;
+    
+    for (double d = step_size; d < max_search_distance && thin_wall_iter < max_thin_wall_iterations; d += step_size)
+    {
+        thin_wall_iter++;
+        
+        current_x = game->player.x + cos(radiant_angle) * d;
+        current_y = game->player.y + sin(radiant_angle) * d;
+        
+        int cell_x = (int)(current_x / TILE_SIZE);
+        int cell_y = (int)(current_y / TILE_SIZE);
+        
+        if (cell_x >= 0 && cell_x < game->map.width && 
+            cell_y >= 0 && cell_y < game->map.height)
+        {
+            char cell_type = game->map.matrix[cell_y][cell_x];
+            
+            if (cell_type == 'D' || cell_type == 'd')
+            {
+                double door_center_x = cell_x * TILE_SIZE + TILE_SIZE / 2.0;
+                double hit_x, hit_y;
+                
+                if (ray_intersects_vertical_line(game->player.x, game->player.y,
+                                               radiant_angle, door_center_x, &hit_x, &hit_y))
+                {
+                    // Vérifier que l'intersection est dans les limites de la cellule
+                    if (hit_y >= cell_y * TILE_SIZE && hit_y <= (cell_y + 1) * TILE_SIZE)
+                    {
+                        // OPTIMISATION 3: Test de transparence plus rapide
+                        // Au lieu de lire la texture pixel par pixel, approximation
+                        int tex_y_approx = ((int)hit_y) % TILE_SIZE;
+                        int is_transparent = 0;
+                        
+                        // Zone transparente approximative (centre vertical)
+                        if (tex_y_approx >= TILE_SIZE/3 && tex_y_approx <= 2*TILE_SIZE/3)
+                        {
+                            is_transparent = 1;
+                        }
+                        
+                        if (is_transparent)
+                        {
+                            // Transparent ! Le rayon continue
+                            continue;
+                        }
+                        else
+                        {
+                            // Opaque ! C'est un vrai hit
+                            double distance = sqrt(pow(hit_x - game->player.x, 2) + 
+                                                 pow(hit_y - game->player.y, 2));
+                            
+                            thin_wall_dist = distance;
+                            thin_wall_hit_x = hit_x;
+                            thin_wall_hit_y = hit_y;
+                            thin_wall_type = cell_type;
+                            thin_wall_found = 1;
+                            break; // Arrêter la recherche
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Phase 2: Raycasting classique pour les murs pleins (INCHANGÉ)
     v = v_intersection(game->player.x, game->player.y, radiant_angle);
     h = h_intersection(game->player.x, game->player.y, radiant_angle);
     epsilon = 0.00001;
     max_iterations = 1000;
     iter = 0;
 
-    // Premier raycasting normal
     while (is_not_wall(&game->map, v.x, v.y) && iter < max_iterations)
     {
         v.x += v.step_x;
@@ -258,93 +375,56 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
     hit_type_v = get_hit_type(&game->map, v.x, v.y);
     hit_type_h = get_hit_type(&game->map, h.x, h.y);
 
-    // Déterminer le premier hit
-    double first_distance;
-    double first_x, first_y;
-    int first_vertical;
-    char first_hit_type;
+    // Phase 3: Déterminer le hit le plus proche (INCHANGÉ)
+    double final_distance;
+    double final_x, final_y;
+    int final_vertical;
+    char final_hit_type;
     
-    if (fabs(dist_v - dist_h) < epsilon)
+    double min_classic_dist = fmin(dist_v, dist_h);
+    
+    if (thin_wall_found && thin_wall_dist < min_classic_dist)
     {
-        first_distance = dist_h;
-        first_x = h.x;
-        first_y = h.y;
-        first_vertical = 0;
-        first_hit_type = hit_type_h;
-    }
-    else if (dist_v < dist_h)
-    {
-        first_distance = dist_v;
-        first_x = v.x;
-        first_y = v.y;
-        first_vertical = 1;
-        first_hit_type = hit_type_v;
+        // Thin wall opaque est plus proche
+        final_distance = thin_wall_dist;
+        final_x = thin_wall_hit_x;
+        final_y = thin_wall_hit_y;
+        final_vertical = 1;
+        final_hit_type = thin_wall_type;
     }
     else
     {
-        first_distance = dist_h;
-        first_x = h.x;
-        first_y = h.y;
-        first_vertical = 0;
-        first_hit_type = hit_type_h;
-    }
-
-    // Stocker le premier hit
-    store_ray_info(game, column_x, first_distance, first_x, first_y, first_vertical, first_hit_type);
-
-    // Si c'est une porte et qu'elle est transparente, lancer un second rayon
-    if ((first_hit_type == 'D' || first_hit_type == 'd') && 
-        is_door_transparent_at_point(game, first_x, first_y))
-    {
-        // Calculer le point de départ du second rayon (légèrement après la porte)
-        double offset = 1.0; // 1 pixel après la porte
-        double second_start_x = first_x + cos(radiant_angle) * offset;
-        double second_start_y = first_y + sin(radiant_angle) * offset;
-        
-        // Lancer le second rayon depuis ce point
-        t_intersect v2 = v_intersection(second_start_x, second_start_y, radiant_angle);
-        t_intersect h2 = h_intersection(second_start_x, second_start_y, radiant_angle);
-        
-        iter = 0;
-        while (is_not_wall(&game->map, v2.x, v2.y) && iter < max_iterations)
+        // Intersection classique plus proche
+        if (fabs(dist_v - dist_h) < epsilon)
         {
-            v2.x += v2.step_x;
-            v2.y += v2.step_y;
-            iter++;
+            final_distance = dist_h;
+            final_x = h.x;
+            final_y = h.y;
+            final_vertical = 0;
+            final_hit_type = hit_type_h;
         }
-        iter = 0;
-        while (is_not_wall(&game->map, h2.x, h2.y) && iter < max_iterations)
+        else if (dist_v < dist_h)
         {
-            h2.x += h2.step_x;
-            h2.y += h2.step_y;
-            iter++;
-        }
-        
-        double dist_v2 = sqrt(pow(v2.x - game->player.x, 2) + pow(v2.y - game->player.y, 2));
-        double dist_h2 = sqrt(pow(h2.x - game->player.x, 2) + pow(h2.y - game->player.y, 2));
-        
-        // Stocker le second hit
-        game->rays[column_x].has_second_hit = 1;
-        if (dist_v2 < dist_h2)
-        {
-            game->rays[column_x].second_distance = dist_v2;
-            game->rays[column_x].second_wall_hit_x = v2.x;
-            game->rays[column_x].second_wall_hit_y = v2.y;
-            game->rays[column_x].second_hit_vertical = 1;
-            game->rays[column_x].second_hit_type = get_hit_type(&game->map, v2.x, v2.y);
+            final_distance = dist_v;
+            final_x = v.x;
+            final_y = v.y;
+            final_vertical = 1;
+            final_hit_type = hit_type_v;
         }
         else
         {
-            game->rays[column_x].second_distance = dist_h2;
-            game->rays[column_x].second_wall_hit_x = h2.x;
-            game->rays[column_x].second_wall_hit_y = h2.y;
-            game->rays[column_x].second_hit_vertical = 0;
-            game->rays[column_x].second_hit_type = get_hit_type(&game->map, h2.x, h2.y);
+            final_distance = dist_h;
+            final_x = h.x;
+            final_y = h.y;
+            final_vertical = 0;
+            final_hit_type = hit_type_h;
         }
     }
 
-    return first_distance;
+    store_ray_info(game, column_x, final_distance, final_x, final_y, final_vertical, final_hit_type);
+    return final_distance;
 }
+
 
 double	no_fish_eye(double min_distance, double radiant_angle,
 		double player_angle)
