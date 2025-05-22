@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/21 12:47:56 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 15:52:03 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,6 +226,13 @@ typedef struct s_ray
 	double				wall_hit_y;
 	int					hit_vertical;
 	char				hit_type;
+
+	int                 has_second_hit;
+    double              second_distance;
+    double              second_wall_hit_x;
+    double              second_wall_hit_y;
+    int                 second_hit_vertical;
+    char                second_hit_type;
 }						t_ray;
 
 typedef struct s_game
@@ -361,4 +368,10 @@ void					draw_enemy_sprite(t_game *game, t_img *sprite,
 int						set_enemy_pos(t_game *game);
 void					update_camera_vectors(t_player *player);
 void	check_interact_door(t_game *t_game);
+int is_near_portal(t_game *game, t_portal *portal);
+void teleport_player(t_game *game, t_portal *to_portal);
+void check_portal_teleport(t_game *game);
+void update_portal_positions(t_game *game);
+
+int is_door_transparent_at_point(t_game *game, double x, double y);
 #endif

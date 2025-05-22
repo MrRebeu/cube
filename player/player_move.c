@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:44:16 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/21 12:44:29 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/21 20:53:33 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,5 +186,11 @@ void	move_player(t_player *player)
 		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
+    if (player->game)
+    {
+        static int move_counter = 0;
+        move_counter++;
+        check_portal_teleport(player->game);
+    }
 }
 

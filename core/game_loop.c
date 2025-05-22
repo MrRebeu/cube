@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_loop.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/20 23:19:16 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/21 20:53:03 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ int	render_next_frame(t_game *game)
 	int			j;
 
 	move_player(&game->player);
+   // check_portal_teleport(game);
+    
 	i = 0;
 	while (i < game->num_enemies)
 	{
