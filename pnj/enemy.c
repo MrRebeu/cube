@@ -3,14 +3,167 @@
 /*                                                        :::      ::::::::   */
 /*   enemy.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 17:39:45 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/21 22:29:51 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:03:54 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../cube3d.h"
+
+
+int load_enemy_animations(t_game *game, t_enemy *enemy)
+{
+    int width, height;
+    
+    // Charger sprite 0
+    enemy->walk_morty[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk.xpm", &width, &height);
+    if (!enemy->walk_morty[0].ptr)
+        return (0);
+        
+    enemy->walk_morty[0].width = width;
+    enemy->walk_morty[0].height = height;
+    enemy->walk_morty[0].addr = mlx_get_data_addr(enemy->walk_morty[0].ptr,
+        &enemy->walk_morty[0].bits_per_pixel,
+        &enemy->walk_morty[0].line_length,
+        &enemy->walk_morty[0].endian);
+        
+    // Charger sprite 1
+    enemy->walk_morty[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk01.xpm", &width, &height);
+    if (!enemy->walk_morty[1].ptr)
+        return (0);
+        
+    enemy->walk_morty[1].width = width;
+    enemy->walk_morty[1].height = height;
+    enemy->walk_morty[1].addr = mlx_get_data_addr(enemy->walk_morty[1].ptr,
+        &enemy->walk_morty[1].bits_per_pixel,
+        &enemy->walk_morty[1].line_length,
+        &enemy->walk_morty[1].endian);
+        
+    return (1);
+}
+void update_enemy_animation(t_enemy *enemy)
+{
+	if (!enemy->active || enemy->state == DEAD)
+        return;
+	if (enemy->state == SEARCH || enemy->state == IDLE)
+	{
+		enemy->animation.frame_counter++;
+		if (enemy->animation.frame_counter >= ANIMATION_SPEED)
+        {
+            // Changer de frame (0 -> 1 -> 0 -> 1...)
+            enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 2;
+            enemy->animation.frame_counter = 0;
+        }
+	}
+    else
+    {
+        enemy->animation.current_frame = 0;
+    }
+}
+
+void calculate_enemy_transform(t_game *game, t_enemy *enemy, t_render *render)
+{
+	double dx;
+    double dy;
+    double inv_det;
+	dx = enemy->x * TILE_SIZE - game->player.x;
+	dy = enemy->y * TILE_SIZE - game->player.y;
+	inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - 
+                 game->player.dir_x * game->player.plane_y);
+	render->floor_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
+    render->floor_y = inv_det * (-game->player.plane_y * dx + game->player.plane_x * dy);
+}
+
+void calculate_enemy_screen_pos(t_game *game, t_render *render)
+{
+	double fov_factor;
+	int max_height;
+
+	render->x = (int)((DISPLAY_WIDTH / 2) * (1 + render->floor_x / render->floor_y));
+	fov_factor = (DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f);
+	render->sprite_size = (int)((TILE_SIZE / render->floor_y) * fov_factor);
+	    max_height = DISPLAY_HEIGHT;
+    max_height = DISPLAY_HEIGHT;
+	if (render->sprite_size > max_height)
+		render->sprite_size = max_height;
+}
+
+int check_enemy_occlusion(t_game *game, t_render *render)
+{
+    int sprite_left_edge;
+    int sprite_start_pixel;
+    int sprite_end_pixel;
+    int sample_count;
+    int col;
+
+    // ← TU MANQUES CES CALCULS !
+    // 1. Calculer le bord gauche du sprite
+    sprite_left_edge = render->x - render->sprite_size / 2;
+    
+    // 2. Vérifier les limites à gauche
+    if (sprite_left_edge < 0)
+        sprite_start_pixel = 0;
+    else
+        sprite_start_pixel = sprite_left_edge;
+        
+    // 3. Calculer le bord droit
+    sprite_end_pixel = sprite_left_edge + render->sprite_size - 1;
+    
+    // 4. Vérifier les limites à droite
+    if (sprite_end_pixel >= DISPLAY_WIDTH)
+        sprite_end_pixel = DISPLAY_WIDTH - 1;
+
+    // Maintenant le reste de ton code marche
+    sample_count = 0;
+    for (int i = 0; i < 5; i++)
+    {
+        col = sprite_start_pixel + i * (sprite_end_pixel - sprite_start_pixel) / 4;
+        if (render->floor_y < game->depth_buffer[col])
+            sample_count++;
+    }
+    return (1);
+    return (sample_count > 0);
+}
+
+void setup_enemy_render_params(t_game *game, t_render *render)
+{
+    int y_offset;
+    
+    render->draw_start = render->x - render->sprite_size / 2;
+    
+    y_offset = render->sprite_size / 6;
+    
+    render->draw_end = (DISPLAY_HEIGHT - render->sprite_size) / 2 + game->pitch + y_offset;
+}
+
+void render_enemy(t_game *game, t_enemy *enemy)
+{
+    t_render renderer;
+    //t_img *current_sprite;
+    //int is_visible;
+    
+    // 1. Vérifier si l'ennemi est mort
+    if (enemy->state == DEAD)
+        return;
+    
+    // 2. Mettre à jour l'animation et récupérer le sprite actuel
+    update_enemy_animation(enemy);
+    //current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
+    
+    // 3. ÉTAPE 1 : Transformer les coordonnées 3D → caméra
+    calculate_enemy_transform(game, enemy, &renderer);
+    
+    // 4. Vérifier si derrière la caméra
+    if (renderer.floor_y <= 0.2f)
+        return;
+    
+    // 5. ÉTAPE 2 : Calculer position et taille à l'écran
+    calculate_enemy_screen_pos(game, &renderer);
+}
 
 int enemy_sees_you(t_enemy *enemy, t_player *player, t_map *map)
 {
@@ -210,66 +363,69 @@ void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 		e->cooldown--;
 }
 
-void render_enemy(t_game *game, t_enemy *enemy)
-{
-	if (enemy->state == DEAD)
-		return;
-	float dx = enemy->x * TILE_SIZE - game->player.x;
-	float dy = enemy->y * TILE_SIZE - game->player.y;
-	float inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - game->player.dir_x * game->player.plane_y);
+// void render_enemy(t_game *game, t_enemy *enemy)
+// {
+// 	int i = 0;
+// 	while (i < )
+	
+// 	if (enemy->state == DEAD)
+// 		return;
+// 	float dx = enemy->x * TILE_SIZE - game->player.x;
+// 	float dy = enemy->y * TILE_SIZE - game->player.y;
+// 	float inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - game->player.dir_x * game->player.plane_y);
 
-	float transform_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
-	float transform_y = inv_det * (-game->player.plane_y * dx + game->player.plane_x * dy);
+// 	float transform_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
+// 	float transform_y = inv_det * (-game->player.plane_y * dx + game->player.plane_x * dy);
 
-	/* 1) dietro la camera o troppo vicino */
-	if (transform_y <= 0.2f)
-		return;
+// 	/* 1) dietro la camera o troppo vicino */
+// 	if (transform_y <= 0.2f)
+// 		return;
 
-	/* 2) proietta orizzontalmente */
-	int screen_x = (int)((DISPLAY_WIDTH / 2) * (1 + transform_x / transform_y));
+// 	/* 2) proietta orizzontalmente */
+// 	int screen_x = (int)((DISPLAY_WIDTH / 2) * (1 + transform_x / transform_y));
 
-	/* 3) occlusione muro: se muro più vicino, skip */
-	/* 3) occlusione muro con multi‑sampling */
-	if (screen_x < 0 || screen_x >= DISPLAY_WIDTH)
-		return;
+// 	/* 3) occlusione muro: se muro più vicino, skip */
+// 	/* 3) occlusione muro con multi‑sampling */
+// 	if (screen_x < 0 || screen_x >= DISPLAY_WIDTH)
+// 		return;
 
-	/* calcola dimensioni e limiti orizzontali sprite */
-	int sprite_size = (int)((TILE_SIZE / transform_y) * ((DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f)));
-	if (sprite_size > DISPLAY_HEIGHT)
-		sprite_size = DISPLAY_HEIGHT;
-	int draw_x = screen_x - sprite_size / 2;
-	int x0 = draw_x < 0 ? 0 : draw_x;
-	int x1 = draw_x + sprite_size - 1;
-	if (x1 >= DISPLAY_WIDTH)
-		x1 = DISPLAY_WIDTH - 1;
+// 	/* calcola dimensioni e limiti orizzontali sprite */
+// 	int sprite_size = (int)((TILE_SIZE / transform_y) * ((DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f)));
+// 	if (sprite_size > DISPLAY_HEIGHT)
+// 		sprite_size = DISPLAY_HEIGHT;
+// 	int draw_x = screen_x - sprite_size / 2;
+// 	int x0 = draw_x < 0 ? 0 : draw_x;
+// 	int x1 = draw_x + sprite_size - 1;
+// 	if (x1 >= DISPLAY_WIDTH)
+// 		x1 = DISPLAY_WIDTH - 1;
 
-	/* multi‑sampling: 5 campioni equidistanti */
-	int samples = 15;
-	int visible = 0;
-	for (int s = 0; s < samples; s++)
-	{
-		int col = x0 + s * (x1 - x0) / (samples - 1);
-		if (transform_y < game->depth_buffer[col])
-			visible++;
-	}
-	/* se nessun campione è visibile, skip */
-	if (visible == 0)
-		return;
-	/* ora sprite è visibile, procedi col draw */
+// 	/* multi‑sampling: 5 campioni equidistanti */
+// 	int samples = 15;
+// 	int visible = 0;
+// 	for (int s = 0; s < samples; s++)
+// 	{
+// 		int col = x0 + s * (x1 - x0) / (samples - 1);
+// 		if (transform_y < game->depth_buffer[col])
+// 			visible++;
+// 	}
+// 	/* se nessun campione è visibile, skip */
+// 	if (visible == 0)
+// 		return;
+// 	/* ora sprite è visibile, procedi col draw */
 
-	/* 4) calcola dimensione sprite */
-	sprite_size = (int)((TILE_SIZE / transform_y) * ((DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f)));
-	if (sprite_size > DISPLAY_HEIGHT)
-		sprite_size = DISPLAY_HEIGHT;
+// 	/* 4) calcola dimensione sprite */
+// 	sprite_size = (int)((TILE_SIZE / transform_y) * ((DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f)));
+// 	if (sprite_size > DISPLAY_HEIGHT)
+// 		sprite_size = DISPLAY_HEIGHT;
 
-	/* 5) posizioni di draw */
-	draw_x = screen_x - sprite_size / 2;
-	int y_offset = sprite_size / 6;
-	int draw_y = (DISPLAY_HEIGHT - sprite_size) / 2 + game->pitch + y_offset;
+// 	/* 5) posizioni di draw */
+// 	draw_x = screen_x - sprite_size / 2;
+// 	int y_offset = sprite_size / 6;
+// 	int draw_y = (DISPLAY_HEIGHT - sprite_size) / 2 + game->pitch + y_offset;
 
-	/* 6) disegna */
-	draw_enemy_sprite(game, enemy->texture, (t_point){draw_x, draw_y}, sprite_size);
-}
+// 	/* 6) disegna */
+// 	draw_enemy_sprite(game, enemy->texture, (t_point){draw_x, draw_y}, sprite_size);
+// }
 
 void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size)
 {

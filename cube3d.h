@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 17:35:46 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:01:41 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,15 @@
 # define WEAPON_POSTFIRE 1 // same image of PREFIRE
 
 typedef struct s_game	t_game;
+
+// Ajouter AVANT typedef struct s_enemy
+#define ANIMATION_SPEED 15
+
+typedef struct s_enemy_animation
+{
+    int current_frame;
+    int frame_counter;
+} t_enemy_animation;
 
 typedef struct s_weapon_state
 {
@@ -149,9 +158,14 @@ typedef struct s_enemy
 	int					cooldown;
 	double				distance_to_player;
 	t_img				*texture;
+	t_img               walk_morty[2]; 
 	double				distance;
 	int					active;
 	int					sees_player;
+	t_enemy_animation   animation;
+	int                 last_state;
+	int					frame_counter;
+	int					sprite_size;
 }						t_enemy;
 
 typedef struct s_player
@@ -285,7 +299,7 @@ typedef struct s_render
 	unsigned int red;   // Red component
 	unsigned int green; // Green component
 	unsigned int blue;  // Blue component
-	/* Screen pixel pointer */
+	int sprite_size;
 	char *screen_pixel; // Destination pixel address on screen
 }						t_render;
 
@@ -384,6 +398,8 @@ void search(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
 void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
 void damage_enemy_at_position(t_game *game, double x, double y, int damage);
 
+void update_enemy_animation(t_enemy *enemy);
+int load_enemy_animations(t_game *game, t_enemy *enemy);
 
 int is_door_transparent_at_point(t_game *game, double x, double y);
 #endif

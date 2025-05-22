@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   init_game.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/20 22:29:41 by tcaccava         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:01:21 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ int	load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 			"./texture/w_raygun_prefire.xpm", "./texture/w_raygun_fire.xpm"},
 			{"./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm",
 			"./texture/w_portalgun.xpm"}};
+
+	
 	int		i;
 
 	int width, height;
@@ -173,12 +175,18 @@ int	init_game(t_game *game, char *map_file)
 	game->enemies = malloc(sizeof(t_enemy) * game->num_enemies);
 	if (!game->enemies)
 		printf("Errore malloc enemies");
+	
 	for (int i = 0; i < game->num_enemies; i++)
 	{
 		game->enemies[i] = (t_enemy){.x = 0.0, .y = 0.0, .angle = 0.0,
 			.health = 100, .state = IDLE, .speed = 0.05, .cooldown = 0,
 			.distance_to_player = 0.0, .texture = &game->map.enemy_texture,
 			.active = 1, .sees_player = 0};
+		if (!load_enemy_animations(game, &game->enemies[i]))
+			{
+				printf("Erreur: impossible de charger les sprites de l'ennemi %d\n", i);
+				return (0);
+			}
 	}
 	if (!set_enemy_pos(game))
         printf("Errore: nessun marker 'M' trovato nella mappa");
