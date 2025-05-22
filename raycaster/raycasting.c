@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 10:09:42 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 17:04:30 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:30:45 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,12 +181,11 @@ int is_not_wall(t_map *map, double x, double y)
         
     cell_type = map->matrix[map_y][map_x];
     
-    // Pour les portes, les traiter comme des espaces vides (le thin wall est géré ailleurs)
-    if (cell_type == 'D' || cell_type == 'd')
-        return (1); // Laisser passer, thin wall géré dans ray_casting()
+    if (cell_type == 'd')  // Seulement 'd' = thin wall
+        return (1);
     
-    // Pour les autres types
-    if (cell_type == '1' || cell_type == 'P' || cell_type == 'i')
+    // 'D' traité comme mur normal
+    if (cell_type == '1' || cell_type == 'P' || cell_type == 'i' || cell_type == 'D')
         return (0);
     else
         return (1);

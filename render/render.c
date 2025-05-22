@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 16:06:33 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 17:24:53 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:26:17 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,20 +37,18 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         renderer.draw_start = 0;
     if (renderer.draw_end >= DISPLAY_HEIGHT)
         renderer.draw_end = DISPLAY_HEIGHT - 1;
-    
-    /* 3. Render column sequentially */
+    render_floor(game, column_x, &renderer);  // ← D'ABORD le sol/plafond
+
     if (ray->hit_type == 'P')
         render_wall_portal(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'D')
-        render_door(game, column_x, &renderer, ray);
+        render_door(game, column_x, &renderer, ray);  // ← APRÈS sur le sol/plafond
     else if (ray->hit_type == 'i')
         render_wall_shooted(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'd')
         render_door_shooted(game, column_x, &renderer, ray);
     else
         render_wall(game, column_x, &renderer, ray);
-        
-    render_floor(game, column_x, &renderer);
 }
 void	render_frame(t_game *game)
 {

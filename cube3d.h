@@ -6,7 +6,7 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 21:50:29 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 20:01:41 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:17:28 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -401,5 +401,7 @@ void damage_enemy_at_position(t_game *game, double x, double y, int damage);
 void update_enemy_animation(t_enemy *enemy);
 int load_enemy_animations(t_game *game, t_enemy *enemy);
 
+int load_shared_enemy_sprites(t_game *game, t_img shared_sprites[2]);
+int count_enemies_in_map(t_game *game);
 int is_door_transparent_at_point(t_game *game, double x, double y);
 #endif

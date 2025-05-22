@@ -1,5 +1,24 @@
 #include "cube3d.h"
 
+int count_enemies_in_map(t_game *game)
+{
+    int count = 0;
+    int y = 0;
+    
+    while (y < game->map.height)
+    {
+        int x = 0;
+        while (x < game->map.width)
+        {
+            if (game->map.matrix[y][x] == 'M')
+                count++;
+            x++;
+        }
+        y++;
+    }
+    return (count);
+}
+
 int	check_borders(t_map *map)
 {
 	int	x;

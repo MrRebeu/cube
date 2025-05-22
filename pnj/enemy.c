@@ -6,12 +6,45 @@
 /*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 17:39:45 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 20:03:54 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/22 20:14:40 by abkhefif         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../cube3d.h"
 
+
+int load_shared_enemy_sprites(t_game *game, t_img shared_sprites[2])
+{
+    int width, height;
+    
+    // Charger sprite 0
+    shared_sprites[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk.xpm", &width, &height);
+    if (!shared_sprites[0].ptr)
+        return (0);
+        
+    shared_sprites[0].width = width;
+    shared_sprites[0].height = height;
+    shared_sprites[0].addr = mlx_get_data_addr(shared_sprites[0].ptr,
+        &shared_sprites[0].bits_per_pixel,
+        &shared_sprites[0].line_length,
+        &shared_sprites[0].endian);
+        
+    // Charger sprite 1
+    shared_sprites[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk01.xpm", &width, &height);
+    if (!shared_sprites[1].ptr)
+        return (0);
+        
+    shared_sprites[1].width = width;
+    shared_sprites[1].height = height;
+    shared_sprites[1].addr = mlx_get_data_addr(shared_sprites[1].ptr,
+        &shared_sprites[1].bits_per_pixel,
+        &shared_sprites[1].line_length,
+        &shared_sprites[1].endian);
+        
+    return (1);
+}
 
 int load_enemy_animations(t_game *game, t_enemy *enemy)
 {
@@ -143,26 +176,35 @@ void setup_enemy_render_params(t_game *game, t_render *render)
 void render_enemy(t_game *game, t_enemy *enemy)
 {
     t_render renderer;
-    //t_img *current_sprite;
-    //int is_visible;
+    t_img *current_sprite;
+    int is_visible;
     
-    // 1. Vérifier si l'ennemi est mort
     if (enemy->state == DEAD)
         return;
     
-    // 2. Mettre à jour l'animation et récupérer le sprite actuel
     update_enemy_animation(enemy);
-    //current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
+    current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
     
-    // 3. ÉTAPE 1 : Transformer les coordonnées 3D → caméra
     calculate_enemy_transform(game, enemy, &renderer);
     
-    // 4. Vérifier si derrière la caméra
     if (renderer.floor_y <= 0.2f)
         return;
     
-    // 5. ÉTAPE 2 : Calculer position et taille à l'écran
     calculate_enemy_screen_pos(game, &renderer);
+    
+    // Vérifier si hors écran
+    if (renderer.x < 0 || renderer.x >= DISPLAY_WIDTH)
+        return;
+    
+    // AJOUTER CES LIGNES :
+    is_visible = check_enemy_occlusion(game, &renderer);
+    if (!is_visible)
+        return;
+    
+    setup_enemy_render_params(game, &renderer);
+    draw_enemy_sprite(game, current_sprite, 
+                     (t_point){renderer.draw_start, renderer.draw_end}, 
+                     renderer.sprite_size);
 }
 
 int enemy_sees_you(t_enemy *enemy, t_player *player, t_map *map)
