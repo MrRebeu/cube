@@ -62,7 +62,7 @@
 #define WEAPON_FIRE 2
 #define WEAPON_POSTFIRE 1 // same image of PREFIRE
 
-#define ANIMATION_SPEED 4
+#define ANIMATION_SPEED 6
 
 typedef struct s_game t_game;
 
@@ -164,6 +164,7 @@ typedef struct s_enemy
 	double				distance_to_player;
 	t_img				*texture;
 	t_img               walk_morty[2]; 
+	t_img			   shoot_morty[2];
 	double				distance;
 	int					active;
 	int					sees_player;

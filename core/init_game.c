@@ -31,6 +31,39 @@ int count_enemies_in_map(t_game *game)
     return (count);
 }
 
+int load_shared_shoot_enemy_sprites(t_game *game, t_img shared_sprites[2])
+{
+    int width, height;
+    
+    // Charger sprite 0
+    shared_sprites[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_shot.xpm", &width, &height);
+    if (!shared_sprites[0].ptr)
+        return (0);
+        
+    shared_sprites[0].width = width;
+    shared_sprites[0].height = height;
+    shared_sprites[0].addr = mlx_get_data_addr(shared_sprites[0].ptr,
+        &shared_sprites[0].bits_per_pixel,
+        &shared_sprites[0].line_length,
+        &shared_sprites[0].endian);
+        
+    // Charger sprite 1
+    shared_sprites[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_shot01.xpm", &width, &height);
+    if (!shared_sprites[1].ptr)
+        return (0);
+        
+    shared_sprites[1].width = width;
+    shared_sprites[1].height = height;
+    shared_sprites[1].addr = mlx_get_data_addr(shared_sprites[1].ptr,
+        &shared_sprites[1].bits_per_pixel,
+        &shared_sprites[1].line_length,
+        &shared_sprites[1].endian);
+        
+    return (1);
+}
+
 int load_shared_enemy_sprites(t_game *game, t_img shared_sprites[2])
 {
     int width, height;
@@ -210,21 +243,26 @@ int	init_game(t_game *game, char *map_file)
 	// game->portal_pos.has_portal1 = 0;
 	// game->portal_pos.has_portal2 = 0;
 	// enemy
-		t_img shared_morty_sprites[2];
+	t_img shared_morty_sprites[2];
 	if (!load_shared_enemy_sprites(game, shared_morty_sprites))
 	{
 		printf("Erreur: impossible de charger les sprites d'ennemis\n");
 		return (0);
 	}
+	t_img shared_morty_shoot_sprites[2];
+	if (!load_shared_shoot_enemy_sprites(game, shared_morty_shoot_sprites))
+	{
+		printf("Erreur: impossible de charger les sprites d'ennemis shoot\n");
+		return (0);
+	}
+	game->num_enemies = count_enemies_in_map(game);
 
-	game->num_enemies = 1;
 	game->enemies = malloc(sizeof(t_enemy) * game->num_enemies);
 	if (!game->enemies)
 	{
 		printf("Errore malloc enemies");
 		return (0);
 	}
-	game->num_enemies = count_enemies_in_map(game);
 
 	for (int i = 0; i < game->num_enemies; i++)
 	{
@@ -236,7 +274,8 @@ int	init_game(t_game *game, char *map_file)
 		// Assigner les sprites partagés
 		game->enemies[i].walk_morty[0] = shared_morty_sprites[0];
 		game->enemies[i].walk_morty[1] = shared_morty_sprites[1];
-		
+		game->enemies[i].shoot_morty[0] = shared_morty_shoot_sprites[0];
+		game->enemies[i].shoot_morty[1] = shared_morty_shoot_sprites[1];
 		// Initialiser l'animation
 		game->enemies[i].animation.current_frame = 0;
 		game->enemies[i].animation.frame_counter = 0;

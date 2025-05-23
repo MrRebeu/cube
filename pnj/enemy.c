@@ -12,6 +12,20 @@
 
 #include "../cube3d.h"
 
+double sprite_scale(double dist)
+{
+    if (dist <= 0.0)
+        return 0.0;
+
+    double scale = 1.0 / log2(dist + 1.0); // éviter log(0)
+
+    if (scale > 0.7)
+        scale = 0.7;
+    else if (scale < 0.05)
+        scale = 0.05;
+
+    return scale;
+}
 
 int load_enemy_animations(t_game *game, t_enemy *enemy)
 {
@@ -43,25 +57,62 @@ int load_enemy_animations(t_game *game, t_enemy *enemy)
         &enemy->walk_morty[1].line_length,
         &enemy->walk_morty[1].endian);
         
+
+	    enemy->shoot_morty[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_shoot.xpm", &width, &height);
+    if (!enemy->shoot_morty[0].ptr)
+        return (0);
+        
+    enemy->shoot_morty[0].width = width;
+    enemy->shoot_morty[0].height = height;
+    enemy->shoot_morty[0].addr = mlx_get_data_addr(enemy->shoot_morty[0].ptr,
+        &enemy->shoot_morty[0].bits_per_pixel,
+        &enemy->shoot_morty[0].line_length,
+        &enemy->shoot_morty[0].endian);
+        
+    // Charger sprite 1
+    enemy->shoot_morty[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_shoot01.xpm", &width, &height);
+    if (!enemy->shoot_morty[1].ptr)
+        return (0);
+        
+    enemy->shoot_morty[1].width = width;
+    enemy->shoot_morty[1].height = height;
+    enemy->shoot_morty[1].addr = mlx_get_data_addr(enemy->shoot_morty[1].ptr,
+        &enemy->shoot_morty[1].bits_per_pixel,
+        &enemy->shoot_morty[1].line_length,
+        &enemy->shoot_morty[1].endian);	
     return (1);
 }
+
 void update_enemy_animation(t_enemy *enemy)
 {
-	if (!enemy->active || enemy->state == DEAD)
+    if (!enemy->active || enemy->state == DEAD)
         return;
-	if (enemy->state == SEARCH || enemy->state == IDLE)
-	{
-		enemy->animation.frame_counter++;
-		if (enemy->animation.frame_counter >= ANIMATION_SPEED)
+
+    if (enemy->state == SEARCH || enemy->state == IDLE)
+    {
+        enemy->animation.frame_counter++;
+        if (enemy->animation.frame_counter >= ANIMATION_SPEED)
         {
-            // Changer de frame (0 -> 1 -> 0 -> 1...)
             enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 2;
             enemy->animation.frame_counter = 0;
         }
-	}
+    }
+    else if (enemy->state == SHOOT)
+    {
+        enemy->animation.frame_counter++;
+        if (enemy->animation.frame_counter >= ANIMATION_SPEED)
+        {
+            // Si tu as plusieurs frames pour le shoot, boucle dessus, sinon force 0
+            enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 2;
+            enemy->animation.frame_counter = 0;
+        }
+    }
     else
     {
         enemy->animation.current_frame = 0;
+        enemy->animation.frame_counter = 0;
     }
 }
 
@@ -85,8 +136,8 @@ void calculate_enemy_screen_pos(t_game *game, t_render *render)
 
 	render->x = (int)((DISPLAY_WIDTH / 2) * (1 + render->floor_x / render->floor_y));
 	fov_factor = (DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f);
-	render->sprite_size = (int)((TILE_SIZE / render->floor_y) * fov_factor);
-	    max_height = DISPLAY_HEIGHT;
+	render->sprite_size = (int)(TILE_SIZE * sprite_scale(render->floor_y) * fov_factor) / 30;
+	max_height = DISPLAY_HEIGHT;
     max_height = DISPLAY_HEIGHT;
 	if (render->sprite_size > max_height)
 		render->sprite_size = max_height;
@@ -125,7 +176,7 @@ int check_enemy_occlusion(t_game *game, t_render *render)
         if (render->floor_y < game->depth_buffer[col])
             sample_count++;
     }
-    return (1);
+    //return (1);
     return (sample_count > 0);
 }
 
@@ -135,7 +186,7 @@ void setup_enemy_render_params(t_game *game, t_render *render)
     
     render->draw_start = render->x - render->sprite_size / 2;
     
-    y_offset = render->sprite_size / 6;
+    y_offset = 55;
     
     render->draw_end = (DISPLAY_HEIGHT - render->sprite_size) / 2 + game->pitch + y_offset;
 }
@@ -150,7 +201,10 @@ void render_enemy(t_game *game, t_enemy *enemy)
         return;
     
     update_enemy_animation(enemy);
-    current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
+	if (enemy->state == SHOOT)
+		current_sprite = &enemy->shoot_morty[enemy->animation.current_frame];
+	else
+    	current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
     
     calculate_enemy_transform(game, enemy, &renderer);
     
@@ -251,13 +305,16 @@ void update_enemy(t_enemy *enemy, t_player *player, t_map *map)
 	else if (enemy->state == SEARCH)
 		search(enemy, player, map, dx, dy, distance);
 	else if (enemy->state == SHOOT)
+	{
 		shoot(enemy, player, map, dx, dy, distance);
+
+	}
 	else if (enemy->state == MELEE)
 		melee(enemy, player, map, dx, dy, distance);
 }
 void idle(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 {
-	double move_x, move_y, speed = 0.03;
+	double move_x, move_y, speed = 0.02;
 	int next_x, next_y;
 	// RIMUOVERE: double old_x = e->x; double old_y = e->y;
 
@@ -417,7 +474,21 @@ void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size)
 			src = sprite->addr + src_y * sprite->line_length + src_x * (sprite->bits_per_pixel / 8);
 			color = *(unsigned int *)src;
 			// 3) Trasparenza
-			if ((color & 0x00FFFFFF) <= 0x0A0A0A)
+			int red   = (color >> 16) & 0xFF;
+			int green = (color >> 8) & 0xFF;
+			int blue  = color & 0xFF;
+
+			// Couleur cible à ignorer : rouge pur
+			int target_red = 255;
+			int target_green = 0;
+			int target_blue = 0;
+
+			// Tolérance (par exemple : ignorer tout ce qui est très rouge)
+			int tolerance = 2;
+
+			if (abs(red - target_red) <= tolerance &&
+				abs(green - target_green) <= tolerance &&
+				abs(blue - target_blue) <= tolerance)
 			{
 				j++;
 				continue;
