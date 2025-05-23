@@ -167,10 +167,15 @@ int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
     while (i < game->num_enemies)
     {
         t_enemy *enemy = &game->enemies[i];
-        int enemy_tile_x = (int)(enemy->x);
-        int enemy_tile_y = (int)(enemy->y);
+        
+        // AVANT : comparaison directe car enemy était en cellules
+        // int enemy_tile_x = (int)(enemy->x);
+        // int enemy_tile_y = (int)(enemy->y);
+        
+        // APRÈS : convertir pixels → cellules
+        int enemy_tile_x = (int)(enemy->x / TILE_SIZE);
+        int enemy_tile_y = (int)(enemy->y / TILE_SIZE);
 
-        // Controlla se il nemico è nella tile colpita E è attivo
         if (enemy_tile_x == tile_x && enemy_tile_y == tile_y && enemy->active)
         {
             enemy->health -= damage;
@@ -178,7 +183,7 @@ int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
             {
                 enemy->active = 0;
                 enemy->state = DEAD;
-                return (1); // Nemico morto
+                return (1); // Ennemi mort
             }
             else
                 return (0);

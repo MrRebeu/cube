@@ -12,21 +12,6 @@
 
 #include "../cube3d.h"
 
-double sprite_scale(double dist)
-{
-    if (dist <= 0.0)
-        return 0.0;
-
-    double scale = 1.0 / log2(dist + 1.0); // éviter log(0)
-
-    if (scale > 0.7)
-        scale = 0.7;
-    else if (scale < 0.05)
-        scale = 0.05;
-
-    return scale;
-}
-
 int load_enemy_animations(t_game *game, t_enemy *enemy)
 {
     int width, height;
@@ -118,29 +103,42 @@ void update_enemy_animation(t_enemy *enemy)
 
 void calculate_enemy_transform(t_game *game, t_enemy *enemy, t_render *render)
 {
-	double dx;
-    double dy;
-    double inv_det;
-	dx = enemy->x * TILE_SIZE - game->player.x;
-	dy = enemy->y * TILE_SIZE - game->player.y;
-	inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - 
-                 game->player.dir_x * game->player.plane_y);
-	render->floor_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
+    double dx, dy, inv_det;
+    
+    // AVANT : multiplication par TILE_SIZE car enemy était en cellules
+    // dx = enemy->x * TILE_SIZE - game->player.x;
+    
+    // APRÈS : les deux sont en pixels, simple soustraction !
+    dx = enemy->x - game->player.x;
+    dy = enemy->y - game->player.y;
+    
+    // Le reste ne change pas
+    inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - 
+                      game->player.dir_x * game->player.plane_y);
+    render->floor_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
     render->floor_y = inv_det * (-game->player.plane_y * dx + game->player.plane_x * dy);
 }
 
 void calculate_enemy_screen_pos(t_game *game, t_render *render)
 {
-	double fov_factor;
-	int max_height;
-
-	render->x = (int)((DISPLAY_WIDTH / 2) * (1 + render->floor_x / render->floor_y));
-	fov_factor = (DISPLAY_WIDTH / 2) / tan(game->player.fov / 2.0f);
-	render->sprite_size = (int)(TILE_SIZE * sprite_scale(render->floor_y) * fov_factor) / 30;
-	max_height = DISPLAY_HEIGHT;
-    max_height = DISPLAY_HEIGHT;
-	if (render->sprite_size > max_height)
-		render->sprite_size = max_height;
+    // Position X sur l'écran
+    render->x = (int)((DISPLAY_WIDTH / 2) * (1 + render->floor_x / render->floor_y));
+    
+    // EXACTEMENT la même formule que calc_wall_height()
+    double distance_to_projection_plane = (DISPLAY_WIDTH / 2.0) / tan(game->player.fov / 2.0);
+    double corrected_dist = fmax(render->floor_y, 0.1);
+    
+    // L'ennemi fait 80% de TILE_SIZE (64 * 0.8 = 51.2)
+    double enemy_height = TILE_SIZE * 1.4;
+    
+    // Formule IDENTIQUE aux murs
+    render->sprite_size = (int)((enemy_height / corrected_dist) * distance_to_projection_plane);
+    
+    // Limites de sécurité uniquement
+    if (render->sprite_size > DISPLAY_HEIGHT * 2)
+        render->sprite_size = DISPLAY_HEIGHT * 2;
+    if (render->sprite_size < 1)
+        render->sprite_size = 1;
 }
 
 int check_enemy_occlusion(t_game *game, t_render *render)
@@ -228,213 +226,247 @@ void render_enemy(t_game *game, t_enemy *enemy)
                      (t_point){renderer.draw_start, renderer.draw_end}, 
                      renderer.sprite_size);
 }
+
 int enemy_sees_you(t_enemy *enemy, t_player *player, t_map *map)
 {
-	double dx;
-	double dy;
-	double angle_to_player;
-	double delta_angle;
-	double fov;
-
-	// Calculate direction to player
-	dx = (player->x / TILE_SIZE) - enemy->x;
-	dy = (player->y / TILE_SIZE) - enemy->y;
-	angle_to_player = atan2(dy, dx);
-	delta_angle = normalize_angle(angle_to_player - enemy->angle);
-	fov = M_PI; // Wider FOV for better detection
-	if (fabs(delta_angle) < fov / 2)
-	{
-		if (line_of_sight(enemy->x, enemy->y, player->x / TILE_SIZE, player->y / TILE_SIZE, map))
-			return (1);
-	}
-	return (0);
+    double dx, dy, angle_to_player, delta_angle, fov;
+    
+    // AVANT : conversion du joueur en cellules
+    // dx = (player->x / TILE_SIZE) - enemy->x;
+    
+    // APRÈS : tout en pixels
+    dx = player->x - enemy->x;
+    dy = player->y - enemy->y;
+    
+    angle_to_player = atan2(dy, dx);
+    delta_angle = normalize_angle(angle_to_player - enemy->angle);
+    fov = M_PI; // 180° de vision
+    
+    if (fabs(delta_angle) < fov / 2)
+    {
+        // line_of_sight attend des pixels maintenant
+        if (line_of_sight(enemy->x, enemy->y, player->x, player->y, map))
+            return (1);
+    }
+    return (0);
 }
+
 
 int line_of_sight(double ex, double ey, double px, double py, t_map *map)
 {
-	double dx;
-	double dy;
-	double distance;
-	double step_x;
-	double step_y;
-	double x;
-	double y;
-	double traveled;
-	int map_x;
-	int map_y;
-
-	dx = px - ex;
-	dy = py - ey;
-	distance = sqrt(dx * dx + dy * dy);
-	step_x = (dx / distance) * STEP_SIZE;
-	step_y = (dy / distance) * STEP_SIZE;
-	x = ex;
-	y = ey;
-	traveled = 0.0;
-	while (traveled < distance)
-	{
-		map_x = (int)x;
-		map_y = (int)y;
-		// 1) Controllo limiti della mappa, NON DISPLAY_...
-		if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
-			return (0);
-		// 2) Se incontro un muro nella matrice
-		if (map->matrix[map_y][map_x] == '1')
-			return (0);
-		// 3) Avanzo lungo il vettore verso il player
-		x += step_x;
-		y += step_y;
-		traveled += STEP_SIZE;
-	}
-	// Non ho incontrato ostacoli
-	return (1);
+    double dx = px - ex;
+    double dy = py - ey;
+    double distance = sqrt(dx * dx + dy * dy);
+    double step_x = (dx / distance) * 5.0;  // Step de 5 pixels
+    double step_y = (dy / distance) * 5.0;
+    double x = ex;
+    double y = ey;
+    double traveled = 0.0;
+    int map_x, map_y;
+    
+    while (traveled < distance)
+    {
+        // Convertir pixels → cellules pour vérifier la map
+        map_x = (int)(x / TILE_SIZE);
+        map_y = (int)(y / TILE_SIZE);
+        
+        if (map_x < 0 || map_x >= map->width || 
+            map_y < 0 || map_y >= map->height)
+            return (0);
+            
+        if (map->matrix[map_y][map_x] == '1')
+            return (0);
+            
+        x += step_x;
+        y += step_y;
+        traveled += 5.0;  // On avance de 5 pixels
+    }
+    return (1);
 }
+
 void update_enemy(t_enemy *enemy, t_player *player, t_map *map)
 {
-	double dx = player->x / TILE_SIZE - enemy->x;
-	double dy = player->y / TILE_SIZE - enemy->y;
-	double distance = sqrt(dx * dx + dy * dy);
-
-	if (enemy->health <= 0)
-	{
-		enemy->state = DEAD;
-		return;
-	}
-	if (enemy->state == IDLE)
-		idle(enemy, player, map, dx, dy, distance);
-	else if (enemy->state == SEARCH)
-		search(enemy, player, map, dx, dy, distance);
-	else if (enemy->state == SHOOT)
-	{
-		shoot(enemy, player, map, dx, dy, distance);
-
-	}
-	else if (enemy->state == MELEE)
-		melee(enemy, player, map, dx, dy, distance);
+    // Tout est maintenant en pixels !
+    double dx = player->x - enemy->x;
+    double dy = player->y - enemy->y;
+    double distance = sqrt(dx * dx + dy * dy);
+    
+    if (enemy->health <= 0)
+    {
+        enemy->state = DEAD;
+        return;
+    }
+    
+    // Passer les valeurs en pixels aux fonctions
+    if (enemy->state == IDLE)
+        idle(enemy, player, map, dx, dy, distance);
+    else if (enemy->state == SEARCH)
+        search(enemy, player, map, dx, dy, distance);
+    else if (enemy->state == SHOOT)
+        shoot(enemy, player, map, dx, dy, distance);
+    else if (enemy->state == MELEE)
+        melee(enemy, player, map, dx, dy, distance);
 }
+
+
 void idle(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 {
-	double move_x, move_y, speed = 0.02;
-	int next_x, next_y;
-	// RIMUOVERE: double old_x = e->x; double old_y = e->y;
-
-	(void)dx; (void)dy; (void)d;
-	
-	move_x = cos(e->angle) * speed;
-	move_y = sin(e->angle) * speed;
-	next_x = (int)(e->x + move_x);
-	next_y = (int)(e->y + move_y);
-	
-	if (next_x >= 0 && next_x < m->width && next_y >= 0 && next_y < m->height &&
-		m->matrix[next_y][next_x] != '1')
-	{
-		e->x += move_x;
-		e->y += move_y;
-		// RIMUOVERE: update_enemy_position_on_map(...)
-	}
-	else
-	{
-		e->angle += ((rand() % 60) - 30) * M_PI / 180;
-		e->angle = normalize_angle(e->angle);
-	}
-	
-	if (enemy_sees_you(e, p, m))
-	{
-		e->state = SEARCH;
-		e->sees_player = 1;
-	}
+    double move_x, move_y;
+    double speed = 1.5;  // AVANT: 0.02 cellule, APRÈS: 1.5 pixels par frame
+    int next_x, next_y;
+    
+    (void)dx; (void)dy; (void)d;
+    
+    move_x = cos(e->angle) * speed;
+    move_y = sin(e->angle) * speed;
+    
+    // Vérifier la collision en pixels
+    next_x = (int)((e->x + move_x) / TILE_SIZE);
+    next_y = (int)((e->y + move_y) / TILE_SIZE);
+    
+    if (next_x >= 0 && next_x < m->width && 
+        next_y >= 0 && next_y < m->height &&
+        m->matrix[next_y][next_x] != '1')
+    {
+        e->x += move_x;  // Ajouter des PIXELS
+        e->y += move_y;
+    }
+    else
+    {
+        // Changer de direction aléatoirement
+        e->angle += ((rand() % 60) - 30) * M_PI / 180;
+        e->angle = normalize_angle(e->angle);
+    }
+    
+    if (enemy_sees_you(e, p, m))
+    {
+        e->state = SEARCH;
+        e->sees_player = 1;
+    }
 }
+
 void shoot(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 {
-	double angle_to_player;
-
-	if (!enemy_sees_you(e, p, m))
-	{
-		e->state = SEARCH;
-		e->sees_player = 0;
-		return;
-	}
-	if (d >= 6.0)
-	{
-		e->state = SEARCH;
-		return;
-	}
-	if (d < 1.5)
-	{
-		e->state = MELEE;
-		e->cooldown = 0;
-		return;
-	}
-	angle_to_player = atan2(dy, dx);
-	e->angle = angle_to_player;
-	if (e->cooldown <= 0)
-	{
-		p->health -= 10;
-		e->cooldown = 30;
-	}
-	else
-		e->cooldown--;
+    double angle_to_player;
+    double distance_in_tiles = d / TILE_SIZE;
+    
+    // Si le joueur n'est plus visible, retourner en recherche
+    if (!enemy_sees_you(e, p, m))
+    {
+        e->state = SEARCH;
+        e->sees_player = 0;
+        return;
+    }
+    
+    // Changement d'état selon la distance
+    if (distance_in_tiles >= 6.0)
+    {
+        e->state = SEARCH;
+        return;
+    }
+    
+    if (distance_in_tiles < 1.5)
+    {
+        e->state = MELEE;
+        e->cooldown = 0;
+        return;
+    }
+    
+    // Orienter vers le joueur
+    angle_to_player = atan2(dy, dx);
+    e->angle = angle_to_player;
+    
+    // NOUVELLE GESTION DU TIR
+    if (e->cooldown <= 0)
+    {
+        p->health -= 10;
+        
+        // AVANT : 30 frames = 0.5 secondes
+        // APRÈS : 180 frames = 3 secondes à 60 FPS
+        e->cooldown = 180;  // ← Un tir toutes les 3 secondes
+        
+        // Alternative : utiliser un temps plus long
+        // e->cooldown = 180;  // 3 secondes
+        // e->cooldown = 240;  // 4 secondes
+    }
+    else
+        e->cooldown--;
 }
 
 void search(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 {
-	double move_x, move_y, speed = 0.05, angle_to_player;
-	int next_x, next_y;
-	// RIMUOVERE: double old_x = e->x; double old_y = e->y;
-
-	if (!enemy_sees_you(e, p, m))
-	{
-		e->state = IDLE;
-		e->sees_player = 0;
-		return;
-	}
-	if (d < 1.5)
-	{
-		e->state = MELEE;
-		e->cooldown = 0;
-		return;
-	}
-	if (d < 6)
-	{
-		e->state = SHOOT;
-		e->cooldown = 0;
-		return;
-	}
-	
-	angle_to_player = atan2(dy, dx);
-	e->angle = angle_to_player;
-	move_x = cos(e->angle) * speed;
-	move_y = sin(e->angle) * speed;
-	next_x = (int)(e->x + move_x);
-	next_y = (int)(e->y + move_y);
-	
-	if (next_x >= 0 && next_x < m->width && next_y >= 0 && next_y < m->height &&
-		m->matrix[next_y][next_x] != '1')
-	{
-		e->x += move_x;
-		e->y += move_y;
-		// RIMUOVERE: update_enemy_position_on_map(...)
-	}
+    double move_x, move_y, angle_to_player;
+    double speed = 3.0;  // Plus rapide quand il te cherche
+    int next_x, next_y;
+    
+    // dx et dy sont maintenant en pixels (depuis update_enemy)
+    
+    if (!enemy_sees_you(e, p, m))
+    {
+        e->state = IDLE;
+        e->sees_player = 0;
+        return;
+    }
+    
+    // Distances en TILES pour les états
+    double distance_in_tiles = d / TILE_SIZE;
+    
+    if (distance_in_tiles < 1.5)
+    {
+        e->state = MELEE;
+        e->cooldown = 0;
+        return;
+    }
+    
+    if (distance_in_tiles < 6)
+    {
+        e->state = SHOOT;
+        e->cooldown = 0;
+        return;
+    }
+    
+    angle_to_player = atan2(dy, dx);
+    e->angle = angle_to_player;
+    
+    move_x = cos(e->angle) * speed;
+    move_y = sin(e->angle) * speed;
+    
+    next_x = (int)((e->x + move_x) / TILE_SIZE);
+    next_y = (int)((e->y + move_y) / TILE_SIZE);
+    
+    if (next_x >= 0 && next_x < m->width && 
+        next_y >= 0 && next_y < m->height &&
+        m->matrix[next_y][next_x] != '1')
+    {
+        e->x += move_x;
+        e->y += move_y;
+    }
 }
 
 void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
 {
-	double angle_to_player;
-
-	if (!enemy_sees_you(e, p, m) || d >= 1.5)
-	{
-		e->state = SEARCH;
-		return;
-	}
-	angle_to_player = atan2(dy, dx);
-	e->angle = angle_to_player;
-	if (e->cooldown <= 0)
-	{
-		p->health -= 25;
-		e->cooldown = 30;
-	}
-	else
-		e->cooldown--;
+    double angle_to_player;
+    double distance_in_tiles = d / TILE_SIZE;
+    
+    if (!enemy_sees_you(e, p, m) || distance_in_tiles >= 1.5)
+    {
+        e->state = SEARCH;
+        return;
+    }
+    
+    angle_to_player = atan2(dy, dx);
+    e->angle = angle_to_player;
+    
+    if (e->cooldown <= 0)
+    {
+        p->health -= 25;  // Plus de dégâts car plus proche
+        
+        // AVANT : 30 frames = 0.5 secondes
+        // APRÈS : 90 frames = 1.5 secondes à 60 FPS
+        e->cooldown = 90;  // ← Attaque de mêlée toutes les 1.5 secondes
+    }
+    else
+        e->cooldown--;
 }
 
 void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size)
