@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_loop.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:09 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 20:02:14 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/21 20:53:24 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,47 +19,34 @@ int	close_window(void *param)
 	return (0);
 }
 
-int render_next_frame(t_game *game)
+int	render_next_frame(t_game *game)
 {
-    int i;
-    double ray_offset;
-    double radiant_angle;
-    static int anim_frames = 0;
-    int j;
+	int			i;
+	double		ray_offset;
+	double		radiant_angle;
+	static int	anim_frames = 0;
+	int			j;
 
-    move_player(&game->player);
-    
-    // AJOUT: Initialiser le depth buffer avant le raycasting
-    i = 0;
-    while (i < DISPLAY_WIDTH)
-    {
-        game->depth_buffer[i] = INFINITY; // Initialiser à l'infini
-        i++;
-    }
-    
-    i = 0;
-    while (i < game->num_enemies)
-    {
-        if (game->enemies[i].active)
-            update_enemy(&game->enemies[i], &game->player, &game->map);
-        i++;
-    }
-    
-    i = 0;
-    while (i < DISPLAY_WIDTH)
-    {
-        ray_offset = game->player.fov * ((double)i / DISPLAY_WIDTH - 0.5);
-        radiant_angle = game->player.angle + ray_offset;
-        radiant_angle = normalize_angle(radiant_angle);
-        game->rays[i].radiant_angle = radiant_angle;
-        game->rays[i].player_angle = game->player.angle;
-        game->rays[i].distance = ray_casting(game, radiant_angle, i);
-        
-        // AJOUT: Mettre à jour le depth buffer avec la distance du rayon
-        game->depth_buffer[i] = game->rays[i].distance;
-        
-        i++;
-    }
+	move_player(&game->player);
+	i = 0;
+	while (i < game->num_enemies)
+	{
+		if (game->enemies[i].active)
+			update_enemy(&game->enemies[i], &game->player, &game->map);
+		i++;
+	}
+	i = 0;
+	while (i < DISPLAY_WIDTH)
+	{
+		ray_offset = game->player.fov * ((double)i / DISPLAY_WIDTH - 0.5);
+		radiant_angle = normalize_angle(game->player.angle + ray_offset);
+		game->rays[i].radiant_angle = radiant_angle;
+		game->rays[i].player_angle = game->player.angle;
+		game->rays[i].distance = ray_casting(game, radiant_angle, i);
+		game->depth_buffer[i] = game->rays[i].distance * cos(radiant_angle
+				- game->player.angle);
+		i++;
+	}
 	if (game->player.weapon.is_firing)
 	{
 		anim_frames++;
@@ -82,10 +69,7 @@ int render_next_frame(t_game *game)
 	while (j < game->num_enemies)
 	{
 		if (game->enemies[j].active)
-		{
-			update_enemy(&game->enemies[j], &game->player, &game->map);
-			render_enemy(game, &game->enemies[j]);  // ← AJOUTER CETTE LIGNE
-		}
+			render_enemy(game, &game->enemies[j]);
 		j++;
 	}
 	draw_crosshair(game);
@@ -93,7 +77,6 @@ int render_next_frame(t_game *game)
 	render_ui(game);
 	return (0);
 }
-
 
 void	render_scene(t_game *game)
 {

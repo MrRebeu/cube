@@ -1,16 +1,27 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   shoot.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/21 22:23:45 by tcaccava          #+#    #+#             */
+/*   Updated: 2025/05/22 19:20:54 by tcaccava         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../cube3d.h"
-
-
+// Sostituisci la tua calculate_shoot con questa versione
 void calculate_shoot(t_game *game)
 {
     double impact_x;
     double impact_y;
     int map_x;
     int map_y;
-    
+
     int center_ray_index = DISPLAY_WIDTH / 2;
     t_ray *center_ray = &game->rays[center_ray_index];
-    
+
     if (game->current_weapon == PORTALGUN)
     {
         if (center_ray->hit_type == '1')
@@ -19,68 +30,92 @@ void calculate_shoot(t_game *game)
             impact_y = center_ray->wall_hit_y;
             map_x = (int)(impact_x / TILE_SIZE);
             map_y = (int)(impact_y / TILE_SIZE);
-            
             if (game->portal_count < 2)
             {
                 game->map.matrix[map_y][map_x] = 'P';
-                
-                // Activer le portail directement ici
-                if (game->portal_count == 0)
-                {
-                    game->portal_1.x = map_x + 0.5;  // Centre de la cellule
-                    game->portal_1.y = map_y + 0.5;
-                    game->portal_1.is_active = 1;    // IMPORTANT: Activer le portail
-                    printf("Portal 1 ACTIVATED at position (%f, %f)\n", game->portal_1.x, game->portal_1.y);
-                }
-                else // game->portal_count == 1
-                {
-                    game->portal_2.x = map_x + 0.5;
-                    game->portal_2.y = map_y + 0.5;
-                    game->portal_2.is_active = 1;    // IMPORTANT: Activer le portail
-                    printf("Portal 2 ACTIVATED at position (%f, %f)\n", game->portal_2.x, game->portal_2.y);
-                }
-                
                 game->portal_count++;
-                printf("DEBUG: Portal created at map position (%d, %d), portal_count=%d\n", 
-                       map_x, map_y, game->portal_count);
-                printf("Portal states: portal1.is_active=%d, portal2.is_active=%d\n",
-                       game->portal_1.is_active, game->portal_2.is_active);
+                printf("Portal added. New count: %d\n", game->portal_count);
             }
             else
             {
-                // Votre code existant pour la gestion des portails existants
                 remove_all_portals(game);
                 game->map.matrix[map_y][map_x] = 'P';
-                
-                // Réinitialiser les portails et activer le premier
-                game->portal_1.x = map_x + 0.5;
-                game->portal_1.y = map_y + 0.5;
-                game->portal_1.is_active = 1;    // IMPORTANT: Activer le nouveau portail
-                game->portal_2.is_active = 0;    // Désactiver le second portail
                 game->portal_count = 1;
-                
-                printf("All portals removed and new Portal 1 ACTIVATED at position (%f, %f)\n",
-                       game->portal_1.x, game->portal_1.y);
+                printf("All portals removed and new one added. Count: %d\n", game->portal_count);
             }
         }
     }
     else if (game->current_weapon == RAYGUN)
     {
-        if (center_ray->hit_type == '1')
+        // NUOVO: Controlla manualmente se stiamo mirando a un nemico
+        double player_x = game->player.x;
+        double player_y = game->player.y;
+        double ray_dir_x = cos(game->player.angle);
+        double ray_dir_y = sin(game->player.angle);
+        
+        int enemy_hit = 0;
+        double closest_enemy_distance = center_ray->distance;
+        
+        // Controlla tutti i nemici attivi
+        for (int i = 0; i < game->num_enemies; i++)
         {
-            impact_x = center_ray->wall_hit_x;
-            impact_y = center_ray->wall_hit_y;
-            map_x = (int)(impact_x / TILE_SIZE);
-            map_y = (int)(impact_y / TILE_SIZE);
-            game->map.matrix[map_y][map_x] = 'i';
+            t_enemy *enemy = &game->enemies[i];
+            if (!enemy->active || enemy->state == DEAD)
+                continue;
+                
+            // Coordinate del nemico in pixel
+            double enemy_px = enemy->x * TILE_SIZE;
+            double enemy_py = enemy->y * TILE_SIZE;
+            
+            // Calcola se il raggio passa abbastanza vicino al nemico
+            double dx_to_enemy = enemy_px - player_x;
+            double dy_to_enemy = enemy_py - player_y;
+            double distance_to_enemy = sqrt(dx_to_enemy * dx_to_enemy + dy_to_enemy * dy_to_enemy);
+            
+            // Verifica che il nemico sia nella direzione in cui stiamo mirando
+            double dot_product = (dx_to_enemy * ray_dir_x + dy_to_enemy * ray_dir_y) / distance_to_enemy;
+            
+            if (dot_product > 0.9 && distance_to_enemy < closest_enemy_distance) // 0.9 = circa 25 gradi di tolleranza
+            {
+                // Calcola quanto siamo vicini alla linea di mira
+                double cross_product = fabs(dx_to_enemy * ray_dir_y - dy_to_enemy * ray_dir_x);
+                double distance_from_line = cross_product / sqrt(ray_dir_x * ray_dir_x + ray_dir_y * ray_dir_y);
+                
+                // Se siamo abbastanza vicini alla linea di mira
+                if (distance_from_line < TILE_SIZE * 0.4) // 40% della tile size come tolleranza
+                {
+                    // Colpito!
+                    map_x = (int)(enemy->x);
+                    map_y = (int)(enemy->y);
+                    printf("Enemy hit at [%d, %d]\n", map_x, map_y);
+                    
+                    if (damage_enemy_at_position(game, map_x, map_y, 25))
+                    {
+                        printf("Enemy flatlined at [%d, %d]\n", map_x, map_y);
+                    }
+                    enemy_hit = 1;
+                    closest_enemy_distance = distance_to_enemy;
+                    break; // Colpisci solo il nemico più vicino
+                }
+            }
         }
-        else if (center_ray->hit_type == 'D')
+        
+        // Se non abbiamo colpito nessun nemico, gestisci muri/porte normalmente
+        if (!enemy_hit)
         {
             impact_x = center_ray->wall_hit_x;
             impact_y = center_ray->wall_hit_y;
             map_x = (int)(impact_x / TILE_SIZE);
             map_y = (int)(impact_y / TILE_SIZE);
-            game->map.matrix[map_y][map_x] = 'd';
+            
+            if (center_ray->hit_type == '1')
+            {
+                game->map.matrix[map_y][map_x] = 'i';
+            }
+            else if (center_ray->hit_type == 'D')
+            {
+                game->map.matrix[map_y][map_x] = 'd';
+            }
         }
     }
 }
@@ -122,5 +157,33 @@ int mouse_button(int button, int x, int y, t_game *game)
         remove_all_portals(game);
     }
 
+    return (0);
+}
+
+int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
+{
+    int i = 0;
+    
+    while (i < game->num_enemies)
+    {
+        t_enemy *enemy = &game->enemies[i];
+        int enemy_tile_x = (int)(enemy->x);
+        int enemy_tile_y = (int)(enemy->y);
+
+        // Controlla se il nemico è nella tile colpita E è attivo
+        if (enemy_tile_x == tile_x && enemy_tile_y == tile_y && enemy->active)
+        {
+            enemy->health -= damage;
+            if (enemy->health <= 0)
+            {
+                enemy->active = 0;
+                enemy->state = DEAD;
+                return (1); // Nemico morto
+            }
+            else
+                return (0);
+        }
+        i++;
+    }
     return (0);
 }

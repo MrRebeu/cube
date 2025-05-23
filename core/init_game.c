@@ -3,14 +3,66 @@
 /*                                                        :::      ::::::::   */
 /*   init_game.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abkhefif <abkhefif@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/12 17:43:46 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/22 20:17:13 by abkhefif         ###   ########.fr       */
+/*   Updated: 2025/05/21 22:11:04 by tcaccava         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cube3d.h"
+
+int count_enemies_in_map(t_game *game)
+{
+    int count = 0;
+    int y = 0;
+    
+    while (y < game->map.height)
+    {
+        int x = 0;
+        while (x < game->map.width)
+        {
+            if (game->map.matrix[y][x] == 'M')
+                count++;
+            x++;
+        }
+        y++;
+    }
+    return (count);
+}
+
+int load_shared_enemy_sprites(t_game *game, t_img shared_sprites[2])
+{
+    int width, height;
+    
+    // Charger sprite 0
+    shared_sprites[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk.xpm", &width, &height);
+    if (!shared_sprites[0].ptr)
+        return (0);
+        
+    shared_sprites[0].width = width;
+    shared_sprites[0].height = height;
+    shared_sprites[0].addr = mlx_get_data_addr(shared_sprites[0].ptr,
+        &shared_sprites[0].bits_per_pixel,
+        &shared_sprites[0].line_length,
+        &shared_sprites[0].endian);
+        
+    // Charger sprite 1
+    shared_sprites[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_walk01.xpm", &width, &height);
+    if (!shared_sprites[1].ptr)
+        return (0);
+        
+    shared_sprites[1].width = width;
+    shared_sprites[1].height = height;
+    shared_sprites[1].addr = mlx_get_data_addr(shared_sprites[1].ptr,
+        &shared_sprites[1].bits_per_pixel,
+        &shared_sprites[1].line_length,
+        &shared_sprites[1].endian);
+        
+    return (1);
+}
 
 int	load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 {
@@ -18,8 +70,6 @@ int	load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 			"./texture/w_raygun_prefire.xpm", "./texture/w_raygun_fire.xpm"},
 			{"./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm",
 			"./texture/w_portalgun.xpm"}};
-
-	
 	int		i;
 
 	int width, height;
@@ -160,7 +210,7 @@ int	init_game(t_game *game, char *map_file)
 	// game->portal_pos.has_portal1 = 0;
 	// game->portal_pos.has_portal2 = 0;
 	// enemy
-	t_img shared_morty_sprites[2];
+		t_img shared_morty_sprites[2];
 	if (!load_shared_enemy_sprites(game, shared_morty_sprites))
 	{
 		printf("Erreur: impossible de charger les sprites d'ennemis\n");

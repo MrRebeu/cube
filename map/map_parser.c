@@ -1,24 +1,5 @@
 #include "cube3d.h"
 
-int count_enemies_in_map(t_game *game)
-{
-    int count = 0;
-    int y = 0;
-    
-    while (y < game->map.height)
-    {
-        int x = 0;
-        while (x < game->map.width)
-        {
-            if (game->map.matrix[y][x] == 'M')
-                count++;
-            x++;
-        }
-        y++;
-    }
-    return (count);
-}
-
 int	check_borders(t_map *map)
 {
 	int	x;
@@ -144,16 +125,13 @@ int set_enemy_pos(t_game *game)
                 game->enemies[idx].active = 1;
                 game->enemies[idx].state = IDLE;
                 game->enemies[idx].health = 100;
-                game->enemies[idx].speed = 0.05;
+                game->enemies[idx].speed = 0.03;
                 game->enemies[idx].sees_player = 0;
                 game->enemies[idx].angle = ((double)rand() / RAND_MAX) * 2 * M_PI;
                 game->enemies[idx].texture = &game->map.enemy_texture;
                 
                 // Replace the 'M' with '0' in the map to make the space walkable
                 game->map.matrix[y][x] = '0';
-                
-                printf("Enemy %d positioned at grid (%d, %d), active: %d, state: %d\n", 
-                       idx, x, y, game->enemies[idx].active, game->enemies[idx].state);
                 idx++;
             }
             x++;
