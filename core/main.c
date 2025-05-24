@@ -35,6 +35,7 @@ void	init_player(t_player *player)
 	player->fire_cooldown = 0;
 }
 
+
 int	main(int argc, char **argv)
 {
 	t_game	game;
@@ -42,16 +43,41 @@ int	main(int argc, char **argv)
 	double	ray_offset;
 	double	radiant_angle;
 
-	if (argc != 2 || check_file_cub(argv[1]) == 0)
+	if (argc == 2)
+	{
+		// Mode normal (comme maintenant)
+		if (check_file_cub(argv[1]) == 0)
+		{
+			printf("Usage: %s <map_file.cub>\n", argv[0]);
+			return (1);
+		}
+		if (!init_game(&game, argv[1]))
+		{
+			printf("Error: game init failed (a revoir l'anglais)\n");
+			return (1);
+		}
+	}
+	else if (argc == 6)
+	{
+		// Mode avec 4 textures directionnelles
+		if (check_file_cub(argv[1]) == 0)
+		{
+			printf("Usage: %s <map_file.cub> <north.xpm> <south.xpm> <east.xpm> <west.xpm>\n", argv[0]);
+			return (1);
+		}
+		if (!init_game_with_4_textures(&game, argv[1], argv[2], argv[3], argv[4], argv[5]))
+		{
+			printf("Error: game init failed\n");
+			return (1);
+		}
+	}
+	else
 	{
 		printf("Usage: %s <map_file.cub>\n", argv[0]);
+		printf("   ou: %s <map_file.cub> <north.xpm> <south.xpm> <east.xpm> <west.xpm>\n", argv[0]);
 		return (1);
 	}
-	if (!init_game(&game, argv[1]))
-	{
-		printf("Error: game init failed (a revoir l'anglais)\n");
-		return (1);
-	}
+
 	i = 0;
 	while (i < DISPLAY_WIDTH)
 	{

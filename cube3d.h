@@ -235,6 +235,13 @@ typedef struct s_map
 	t_img arm_1;
 	int x_player;
 	int y_player;
+
+	t_img	north;
+	t_img	south;
+	t_img	west;
+	t_img	east;
+	int		floor_color;
+	int		sky_color;
 } t_map;
 
 typedef struct s_ray
@@ -393,5 +400,8 @@ void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d);
 int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage);
 void update_enemy_position_on_map(t_game *game, t_enemy *enemy, double old_x, double old_y);
 
+int init_game_with_4_textures(t_game *game, char *map_file, char *north_texture, char *south_texture, char *east_texture, char *west_texture);
+
+t_img* get_wall_texture(t_game *game, t_ray *ray);
 
 #endif

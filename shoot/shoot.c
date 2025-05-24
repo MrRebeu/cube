@@ -124,6 +124,8 @@ int mouse_button(int button, int x, int y, t_game *game)
 {
     (void)x;
     (void)y;
+    if (game->map.north.ptr != NULL)
+        return 0;
     if (button == 1)
     {
         if (game->current_weapon == RAYGUN)
