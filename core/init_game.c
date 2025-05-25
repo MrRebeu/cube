@@ -31,6 +31,60 @@ int count_enemies_in_map(t_game *game)
     return (count);
 }
 
+int load_shared_dead_enemy_sprites(t_game *game, t_img shared_sprites[2])
+{
+    int width, height;
+    
+    // Charger sprite mort 0
+    shared_sprites[0].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_death.xpm", &width, &height);
+    if (!shared_sprites[0].ptr)
+        return (0);
+        
+    shared_sprites[0].width = width;
+    shared_sprites[0].height = height;
+    shared_sprites[0].addr = mlx_get_data_addr(shared_sprites[0].ptr,
+        &shared_sprites[0].bits_per_pixel,
+        &shared_sprites[0].line_length,
+        &shared_sprites[0].endian);
+        
+    // Charger sprite mort 1 (optionnel, peut être identique)
+    shared_sprites[1].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_death01.xpm", &width, &height);
+    if (!shared_sprites[1].ptr)
+    {
+        // Si pas de deuxième sprite, utiliser le premier
+        shared_sprites[1] = shared_sprites[0];
+        return (1);
+    }
+        
+    shared_sprites[1].width = width;
+    shared_sprites[1].height = height;
+    shared_sprites[1].addr = mlx_get_data_addr(shared_sprites[1].ptr,
+        &shared_sprites[1].bits_per_pixel,
+        &shared_sprites[1].line_length,
+        &shared_sprites[1].endian);
+	
+
+	shared_sprites[2].ptr = mlx_xpm_file_to_image(game->mlx,
+        "./texture/morty_death02.xpm", &width, &height);
+    if (!shared_sprites[2].ptr)
+    {
+        // Si pas de deuxième sprite, utiliser le premier
+        shared_sprites[2] = shared_sprites[0];
+        return (1);
+    }
+        
+    shared_sprites[2].width = width;
+    shared_sprites[2].height = height;
+    shared_sprites[2].addr = mlx_get_data_addr(shared_sprites[2].ptr,
+        &shared_sprites[2].bits_per_pixel,
+        &shared_sprites[2].line_length,
+        &shared_sprites[2].endian);
+        
+    return (1);
+}
+
 int load_shared_shoot_enemy_sprites(t_game *game, t_img shared_sprites[2])
 {
     int width, height;
@@ -263,7 +317,12 @@ int	init_game(t_game *game, char *map_file)
 		printf("Errore malloc enemies");
 		return (0);
 	}
-
+	t_img shared_morty_death_sprites[3];
+	if (!load_shared_dead_enemy_sprites(game, shared_morty_death_sprites))
+	{
+	    printf("Erreur: impossible de charger les sprites d'ennemis morts\n");
+	    return (0);
+	}
 	for (int i = 0; i < game->num_enemies; i++)
 	{
 		game->enemies[i] = (t_enemy){.x = 0.0, .y = 0.0, .angle = 0.0,
@@ -276,6 +335,9 @@ int	init_game(t_game *game, char *map_file)
 		game->enemies[i].walk_morty[1] = shared_morty_sprites[1];
 		game->enemies[i].shoot_morty[0] = shared_morty_shoot_sprites[0];
 		game->enemies[i].shoot_morty[1] = shared_morty_shoot_sprites[1];
+		game->enemies[i].death_morty[0] = shared_morty_death_sprites[0]; // ← NOUVEAU
+    	game->enemies[i].death_morty[1] = shared_morty_death_sprites[1];
+		game->enemies[i].death_morty[2] = shared_morty_death_sprites[2]; // ← NOUVEAU
 		// Initialiser l'animation
 		game->enemies[i].animation.current_frame = 0;
 		game->enemies[i].animation.frame_counter = 0;
@@ -437,7 +499,7 @@ int init_game_with_4_textures(t_game *game, char *map_file, char *north_texture,
 		game->enemies[i] = (t_enemy){.x = 0.0, .y = 0.0, .angle = 0.0,
 			.health = 100, .state = IDLE, .speed = 0.05, .cooldown = 0,
 			.distance_to_player = 0.0, .texture = &game->map.enemy_texture,
-			.active = 1, .sees_player = 0};
+			.active = 1, .sees_player = 0, .death_timer = 0};
 		
 		// Assigner les sprites partagés
 		game->enemies[i].walk_morty[0] = shared_morty_sprites[0];

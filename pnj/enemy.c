@@ -67,6 +67,38 @@ int load_enemy_animations(t_game *game, t_enemy *enemy)
         &enemy->shoot_morty[1].bits_per_pixel,
         &enemy->shoot_morty[1].line_length,
         &enemy->shoot_morty[1].endian);	
+
+    //death morty//
+    enemy->death_morty[0].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death.xpm", &width, &height);
+    if (!enemy->death_morty[0].ptr)
+        return (0);
+    enemy->death_morty[0].width = width;
+    enemy->death_morty[0].height = height;
+    enemy->death_morty[0].addr = mlx_get_data_addr(enemy->death_morty[0].ptr,
+        &enemy->death_morty[0].bits_per_pixel,
+        &enemy->death_morty[0].line_length,
+        &enemy->death_morty[0].endian);
+
+    enemy->death_morty[1].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death.xpm", &width, &height);
+    if (!enemy->death_morty[1].ptr)
+        return (1);
+    enemy->death_morty[1].width = width;
+    enemy->death_morty[1].height = height;
+    enemy->death_morty[1].addr = mlx_get_data_addr(enemy->death_morty[1].ptr,
+        &enemy->death_morty[1].bits_per_pixel,
+        &enemy->death_morty[1].line_length,
+        &enemy->death_morty[1].endian);
+
+    enemy->death_morty[2].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death.xpm", &width, &height);
+    if (!enemy->death_morty[2].ptr)
+        return (2);
+    enemy->death_morty[2].width = width;
+    enemy->death_morty[2].height = height;
+    enemy->death_morty[2].addr = mlx_get_data_addr(enemy->death_morty[2].ptr,
+        &enemy->death_morty[2].bits_per_pixel,
+        &enemy->death_morty[2].line_length,
+        &enemy->death_morty[2].endian);
+    //////////////
     return (1);
 }
 
@@ -91,6 +123,15 @@ void update_enemy_animation(t_enemy *enemy)
         {
             // Si tu as plusieurs frames pour le shoot, boucle dessus, sinon force 0
             enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 2;
+            enemy->animation.frame_counter = 0;
+        }
+    }
+    else if (enemy->state == DEAD)  // ← MODIFIER ICI
+    {
+        enemy->animation.frame_counter++;
+        if (enemy->animation.frame_counter >= ANIMATION_SPEED * 2)  // Plus lent
+        {
+            enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 3;  // ← 3 frames !
             enemy->animation.frame_counter = 0;
         }
     }
@@ -195,15 +236,31 @@ void render_enemy(t_game *game, t_enemy *enemy)
     t_img *current_sprite;
     int is_visible;
     
+    // ← ENLEVER CETTE LIGNE : if (enemy->state == DEAD) return;
+    
+    // ← AJOUTER LE TIMER DE MORT
     if (enemy->state == DEAD)
-        return;
+    {
+        if (enemy->death_timer > 0)
+            enemy->death_timer--;
+        else
+        {
+            enemy->active = 0;
+            return;
+        }
+    }
     
     update_enemy_animation(enemy);
-	if (enemy->state == SHOOT)
-		current_sprite = &enemy->shoot_morty[enemy->animation.current_frame];
-	else
-    	current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
     
+    // ← AJOUTER LE CAS DEAD ICI
+    if (enemy->state == DEAD)
+        current_sprite = &enemy->death_morty[enemy->animation.current_frame];
+    else if (enemy->state == SHOOT)
+        current_sprite = &enemy->shoot_morty[enemy->animation.current_frame];
+    else
+        current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
+    
+    // ← TOUT LE RESTE RESTE IDENTIQUE
     calculate_enemy_transform(game, enemy, &renderer);
     
     if (renderer.floor_y <= 0.2f)
@@ -211,12 +268,9 @@ void render_enemy(t_game *game, t_enemy *enemy)
     
     calculate_enemy_screen_pos(game, &renderer);
     
-    // Vérifier si hors écran
-    if (renderer.x <
-	 0 || renderer.x >= DISPLAY_WIDTH)
+    if (renderer.x < 0 || renderer.x >= DISPLAY_WIDTH)
         return;
     
-    // AJOUTER CES LIGNES :
     is_visible = check_enemy_occlusion(game, &renderer);
     if (!is_visible)
         return;

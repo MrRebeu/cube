@@ -165,6 +165,7 @@ typedef struct s_enemy
 	t_img				*texture;
 	t_img               walk_morty[2]; 
 	t_img			   shoot_morty[2];
+	t_img				death_morty[3];
 	double				distance;
 	int					active;
 	int					sees_player;
@@ -172,6 +173,7 @@ typedef struct s_enemy
 	int                 last_state;
 	int					frame_counter;
 	int					sprite_size;
+	int					death_timer;
 }						t_enemy;
 
 typedef struct s_player
