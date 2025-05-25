@@ -326,7 +326,7 @@ int	init_game(t_game *game, char *map_file)
 	for (int i = 0; i < game->num_enemies; i++)
 	{
 		game->enemies[i] = (t_enemy){.x = 0.0, .y = 0.0, .angle = 0.0,
-			.health = 100, .state = IDLE, .speed = 0.05, .cooldown = 0,
+			.health = 10, .state = IDLE, .speed = 0.05, .cooldown = 0,
 			.distance_to_player = 0.0, .texture = &game->map.enemy_texture,
 			.active = 1, .sees_player = 0};
 		

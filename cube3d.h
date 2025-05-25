@@ -405,5 +405,6 @@ void update_enemy_position_on_map(t_game *game, t_enemy *enemy, double old_x, do
 int init_game_with_4_textures(t_game *game, char *map_file, char *north_texture, char *south_texture, char *east_texture, char *west_texture);
 
 t_img* get_wall_texture(t_game *game, t_ray *ray);
-
+void render_death_animation(t_game *game, t_enemy *enemy);
+void update_death_animation(t_enemy *enemy);
 #endif

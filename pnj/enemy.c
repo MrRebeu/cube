@@ -12,6 +12,44 @@
 
 #include "../cube3d.h"
 
+
+void update_death_animation(t_enemy *enemy)
+{
+    if (enemy->state != DEAD)
+        return;
+        
+    enemy->animation.frame_counter++;
+    
+    // ← TIMING DIFFÉRENT pour chaque frame
+    int frame_duration;
+    switch (enemy->animation.current_frame)
+    {
+        case 0:  // Chute rapide au début
+            frame_duration = 20;  // 0.5 seconde
+            break;
+        case 1:  // Ralentir la chute
+            frame_duration = 20;  // 1 seconde
+            break;
+        case 2:  // Rester au sol longtemps
+            frame_duration = 180; // 3 secondes
+            break;
+        default:
+            frame_duration = 60;
+    }
+    
+    if (enemy->animation.frame_counter >= frame_duration)
+    {
+        enemy->animation.current_frame++;
+        
+        if (enemy->animation.current_frame >= 3)
+            enemy->animation.current_frame = 2;  // Rester sur la dernière frame
+        
+        enemy->animation.frame_counter = 0;
+        
+        printf("Death progression: frame %d\n", enemy->animation.current_frame);
+    }
+}
+
 int load_enemy_animations(t_game *game, t_enemy *enemy)
 {
     int width, height;
@@ -79,7 +117,7 @@ int load_enemy_animations(t_game *game, t_enemy *enemy)
         &enemy->death_morty[0].line_length,
         &enemy->death_morty[0].endian);
 
-    enemy->death_morty[1].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death.xpm", &width, &height);
+    enemy->death_morty[1].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death01.xpm", &width, &height);
     if (!enemy->death_morty[1].ptr)
         return (1);
     enemy->death_morty[1].width = width;
@@ -89,7 +127,7 @@ int load_enemy_animations(t_game *game, t_enemy *enemy)
         &enemy->death_morty[1].line_length,
         &enemy->death_morty[1].endian);
 
-    enemy->death_morty[2].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death.xpm", &width, &height);
+    enemy->death_morty[2].ptr=mlx_xpm_file_to_image(game->mlx, "./texture/morty_death02.xpm", &width, &height);
     if (!enemy->death_morty[2].ptr)
         return (2);
     enemy->death_morty[2].width = width;
@@ -104,9 +142,17 @@ int load_enemy_animations(t_game *game, t_enemy *enemy)
 
 void update_enemy_animation(t_enemy *enemy)
 {
-    if (!enemy->active || enemy->state == DEAD)
+    if (!enemy->active)
         return;
 
+    // ← UTILISER LA FONCTION SPÉCIALE pour la mort
+    if (enemy->state == DEAD)
+    {
+        update_death_animation(enemy);
+        return;
+    }
+    
+    // ← ANIMATIONS NORMALES pour les vivants
     if (enemy->state == SEARCH || enemy->state == IDLE)
     {
         enemy->animation.frame_counter++;
@@ -121,24 +167,9 @@ void update_enemy_animation(t_enemy *enemy)
         enemy->animation.frame_counter++;
         if (enemy->animation.frame_counter >= ANIMATION_SPEED)
         {
-            // Si tu as plusieurs frames pour le shoot, boucle dessus, sinon force 0
             enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 2;
             enemy->animation.frame_counter = 0;
         }
-    }
-    else if (enemy->state == DEAD)  // ← MODIFIER ICI
-    {
-        enemy->animation.frame_counter++;
-        if (enemy->animation.frame_counter >= ANIMATION_SPEED * 2)  // Plus lent
-        {
-            enemy->animation.current_frame = (enemy->animation.current_frame + 1) % 3;  // ← 3 frames !
-            enemy->animation.frame_counter = 0;
-        }
-    }
-    else
-    {
-        enemy->animation.current_frame = 0;
-        enemy->animation.frame_counter = 0;
     }
 }
 
@@ -236,9 +267,7 @@ void render_enemy(t_game *game, t_enemy *enemy)
     t_img *current_sprite;
     int is_visible;
     
-    // ← ENLEVER CETTE LIGNE : if (enemy->state == DEAD) return;
-    
-    // ← AJOUTER LE TIMER DE MORT
+    // ← GESTION SPÉCIALE pour la mort
     if (enemy->state == DEAD)
     {
         if (enemy->death_timer > 0)
@@ -248,19 +277,20 @@ void render_enemy(t_game *game, t_enemy *enemy)
             enemy->active = 0;
             return;
         }
+        
+        // ← APPELER LA FONCTION SPÉCIALE DE MORT
+        render_death_animation(game, enemy);
+        return;  // Sortir ici, ne pas faire le rendu normal
     }
     
+    // ← RENDU NORMAL pour les ennemis vivants
     update_enemy_animation(enemy);
     
-    // ← AJOUTER LE CAS DEAD ICI
-    if (enemy->state == DEAD)
-        current_sprite = &enemy->death_morty[enemy->animation.current_frame];
-    else if (enemy->state == SHOOT)
+    if (enemy->state == SHOOT)
         current_sprite = &enemy->shoot_morty[enemy->animation.current_frame];
     else
         current_sprite = &enemy->walk_morty[enemy->animation.current_frame];
     
-    // ← TOUT LE RESTE RESTE IDENTIQUE
     calculate_enemy_transform(game, enemy, &renderer);
     
     if (renderer.floor_y <= 0.2f)
@@ -648,4 +678,61 @@ void update_enemy_position_on_map(t_game *game, t_enemy *enemy, double old_x, do
 			game->map.matrix[new_map_y][new_map_x] = 'M';
 		}
 	}
+}
+
+void render_death_animation(t_game *game, t_enemy *enemy)
+{
+    t_render renderer;
+    t_img *current_sprite;
+    int death_y_offset = 0;
+    int death_size_modifier = 0;
+    
+    // ← IMPORTANT : Décalage vertical selon la frame de mort
+    switch (enemy->animation.current_frame)
+    {
+        case 0:  // Début de chute
+            death_y_offset = 0;           // Position normale
+            death_size_modifier = 0;      // Taille normale
+            break;
+        case 1:  // Mi-chute
+            death_y_offset = 20;          // Un peu plus bas
+            death_size_modifier = -10;    // Un peu plus petit
+            break;
+        case 2:  // Au sol
+            death_y_offset = 40;          // Beaucoup plus bas
+            death_size_modifier = -20;    // Plus petit (écrasé)
+            break;
+    }
+    
+    current_sprite = &enemy->death_morty[enemy->animation.current_frame];
+    
+    calculate_enemy_transform(game, enemy, &renderer);
+    
+    if (renderer.floor_y <= 0.2f)
+        return;
+    
+    calculate_enemy_screen_pos(game, &renderer);
+    
+    // ← MODIFIER LA TAILLE pour l'effet de chute
+    renderer.sprite_size += death_size_modifier;
+    if (renderer.sprite_size < 10)
+        renderer.sprite_size = 10;  // Taille minimum
+    
+    if (renderer.x < 0 || renderer.x >= DISPLAY_WIDTH)
+        return;
+    
+    int is_visible = check_enemy_occlusion(game, &renderer);
+    if (!is_visible)
+        return;
+    
+    // ← MODIFIER LA POSITION Y pour la chute
+    setup_enemy_render_params(game, &renderer);
+    renderer.draw_end += death_y_offset;  // Descendre le sprite
+    
+    printf("Death frame %d: y_offset=%d, size=%d\n", 
+           enemy->animation.current_frame, death_y_offset, renderer.sprite_size);
+    
+    draw_enemy_sprite(game, current_sprite, 
+                     (t_point){renderer.draw_start, renderer.draw_end}, 
+                     renderer.sprite_size);
 }

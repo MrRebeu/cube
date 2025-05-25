@@ -178,9 +178,10 @@ int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
             enemy->health -= damage;
             if (enemy->health <= 0)
             {
-                enemy->active = 0;
+                //enemy->active = 0;
                 enemy->death_timer = 300;
                 enemy->animation.current_frame = 0;
+                enemy->animation.frame_counter = 0;
                 enemy->state = DEAD;
                 return (1); // Ennemi mort
             }
