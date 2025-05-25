@@ -25,13 +25,13 @@ void update_death_animation(t_enemy *enemy)
     switch (enemy->animation.current_frame)
     {
         case 0:  // Chute rapide au début
-            frame_duration = 20;  // 0.5 seconde
+            frame_duration = 10;  // 0.5 seconde
             break;
         case 1:  // Ralentir la chute
-            frame_duration = 20;  // 1 seconde
+            frame_duration = 4;  // 1 seconde
             break;
         case 2:  // Rester au sol longtemps
-            frame_duration = 180; // 3 secondes
+            frame_duration = 300; // 3 secondes
             break;
         default:
             frame_duration = 60;
@@ -277,8 +277,7 @@ void render_enemy(t_game *game, t_enemy *enemy)
             enemy->active = 0;
             return;
         }
-        
-        // ← APPELER LA FONCTION SPÉCIALE DE MORT
+        update_death_animation(enemy);      
         render_death_animation(game, enemy);
         return;  // Sortir ici, ne pas faire le rendu normal
     }
@@ -308,7 +307,7 @@ void render_enemy(t_game *game, t_enemy *enemy)
     setup_enemy_render_params(game, &renderer);
     draw_enemy_sprite(game, current_sprite, 
                      (t_point){renderer.draw_start, renderer.draw_end}, 
-                     renderer.sprite_size);
+                     renderer.sprite_size, enemy);
 }
 
 int enemy_sees_you(t_enemy *enemy, t_player *player, t_map *map)
@@ -553,79 +552,99 @@ void melee(t_enemy *e, t_player *p, t_map *m, double dx, double dy, double d)
         e->cooldown--;
 }
 
-void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size)
+void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size, t_enemy *enemy)
 {
-	int i;
-	int j;
-	int src_x;
-	int src_y;
-	char *src;
-	unsigned int color;
-	int x;
-	int y;
-	char *dst;
+    int i;
+    int j;
+    int src_x;
+    int src_y;
+    char *src;
+    unsigned int color;
+    int x;
+    int y;
+    char *dst;
 
-	// Protezione base
-	if (!sprite || !sprite->addr || size <= 0)
-		return;
-	i = 0;
-	while (i < size)
-	{
-		j = 0;
-		while (j < size)
-		{
-			// 1) Mappatura texture
-			src_x = i * sprite->width / size;
-			src_y = j * sprite->height / size;
-			// clamp
-			if (src_x < 0)
-				src_x = 0;
-			else if (src_x >= sprite->width)
-				src_x = sprite->width - 1;
-			if (src_y < 0)
-				src_y = 0;
-			else if (src_y >= sprite->height)
-				src_y = sprite->height - 1;
-			// 2) Leggi pixel
-			src = sprite->addr + src_y * sprite->line_length + src_x * (sprite->bits_per_pixel / 8);
-			color = *(unsigned int *)src;
-			// 3) Trasparenza
-			int red   = (color >> 16) & 0xFF;
-			int green = (color >> 8) & 0xFF;
-			int blue  = color & 0xFF;
+    // Protezione base
+    if (!sprite || !sprite->addr || size <= 0)
+        return;
+    i = 0;
+    while (i < size)
+    {
+        j = 0;
+        while (j < size)
+        {
+            // 1) Mappatura texture
+            src_x = i * sprite->width / size;
+            src_y = j * sprite->height / size;
+            // clamp
+            if (src_x < 0)
+                src_x = 0;
+            else if (src_x >= sprite->width)
+                src_x = sprite->width - 1;
+            if (src_y < 0)
+                src_y = 0;
+            else if (src_y >= sprite->height)
+                src_y = sprite->height - 1;
+            // 2) Leggi pixel
+            src = sprite->addr + src_y * sprite->line_length + src_x * (sprite->bits_per_pixel / 8);
+            color = *(unsigned int *)src;
+            
+            // 3) Trasparenza - SELON L'ÉTAT DE L'ENNEMI
+            int red   = (color >> 16) & 0xFF;
+            int green = (color >> 8) & 0xFF;
+            int blue  = color & 0xFF;
 
-			// Couleur cible à ignorer : rouge pur
-			int target_red = 255;
-			int target_green = 0;
-			int target_blue = 0;
+            int skip_pixel = 0;
+            int tolerance = 2;
+            
+            if (enemy->state == DEAD)
+            {
+                // Pour les sprites de mort : ignorer FF00BD (magenta/rose)
+                int target_red = 0xFF;
+                int target_green = 0x00;
+                int target_blue = 0xBD;
 
-			// Tolérance (par exemple : ignorer tout ce qui est très rouge)
-			int tolerance = 2;
+                if (abs(red - target_red) <= tolerance &&
+                    abs(green - target_green) <= tolerance &&
+                    abs(blue - target_blue) <= tolerance)
+                {
+                    skip_pixel = 1;
+                }
+            }
+            else
+            {
+                // Pour les sprites normaux : ignorer FF0000 (rouge pur) - COMME AVANT
+                int target_red = 255;
+                int target_green = 0;
+                int target_blue = 0;
 
-			if (abs(red - target_red) <= tolerance &&
-				abs(green - target_green) <= tolerance &&
-				abs(blue - target_blue) <= tolerance)
-			{
-				j++;
-				continue;
-			}
-			// 4) Posizione sullo schermo
-			x = pos.x + i;
-			y = pos.y + j;
-			// 5) Clipping
-			if (x < 0 || x >= DISPLAY_WIDTH || y < 0 || y >= DISPLAY_HEIGHT)
-			{
-				j++;
-				continue;
-			}
-			// 6) Disegna
-			dst = game->screen.addr + y * game->screen.line_length + x * (game->screen.bits_per_pixel / 8);
-			*(unsigned int *)dst = color;
-			j++;
-		}
-		i++;
-	}
+                if (abs(red - target_red) <= tolerance &&
+                    abs(green - target_green) <= tolerance &&
+                    abs(blue - target_blue) <= tolerance)
+                {
+                    skip_pixel = 1;
+                }
+            }
+
+            if (!skip_pixel)
+            {
+                // 4) Posizione sullo schermo
+                x = pos.x + i;
+                y = pos.y + j;
+                // 5) Clipping
+                if (x >= 0 && x < DISPLAY_WIDTH && y >= 0 && y < DISPLAY_HEIGHT)
+                {
+                    // 6) Disegna
+                    dst = game->screen.addr + y * game->screen.line_length + x * (game->screen.bits_per_pixel / 8);
+                    *(unsigned int *)dst = color;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
 }
+
 void update_camera_vectors(t_player *player)
 {
 	double fov_half;
@@ -699,7 +718,7 @@ void render_death_animation(t_game *game, t_enemy *enemy)
             death_size_modifier = -10;    // Un peu plus petit
             break;
         case 2:  // Au sol
-            death_y_offset = 40;          // Beaucoup plus bas
+            death_y_offset = 100;          // Beaucoup plus bas
             death_size_modifier = -20;    // Plus petit (écrasé)
             break;
     }
@@ -734,5 +753,5 @@ void render_death_animation(t_game *game, t_enemy *enemy)
     
     draw_enemy_sprite(game, current_sprite, 
                      (t_point){renderer.draw_start, renderer.draw_end}, 
-                     renderer.sprite_size);
+                     renderer.sprite_size, enemy);
 }

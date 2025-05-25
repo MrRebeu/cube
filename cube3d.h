@@ -390,8 +390,7 @@ void update_enemy(t_enemy *enemy, t_player *player,
 				  t_map *map);
 void render_enemy(t_game *game, t_enemy *enemy);
 
-void draw_enemy_sprite(t_game *game, t_img *sprite,
-					   t_point pos, int size);
+void draw_enemy_sprite(t_game *game, t_img *sprite, t_point pos, int size, t_enemy *enemy);
 int set_enemy_pos(t_game *game);
 void update_camera_vectors(t_player *player);
 void draw_minimap_cone(t_game *game);
