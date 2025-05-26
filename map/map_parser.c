@@ -128,7 +128,7 @@ int set_enemy_pos(t_game *game)
                 
                 game->enemies[idx].active = 1;
                 game->enemies[idx].state = IDLE;
-                game->enemies[idx].health = 100;
+                game->enemies[idx].health = 50;
                 game->enemies[idx].speed = 2.0;  // Vitesse en PIXELS maintenant !
                 game->enemies[idx].sees_player = 0;
                 game->enemies[idx].angle = ((double)rand() / RAND_MAX) * 2 * M_PI;

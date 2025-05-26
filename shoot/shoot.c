@@ -84,7 +84,7 @@ void calculate_shoot(t_game *game)
                     
                     printf("Enemy hit at [%d, %d]\n", map_x, map_y);
                     
-                    if (damage_enemy_at_position(game, map_x, map_y, 25))
+                    if (damage_enemy_at_position(game, map_x, map_y, 100))
                     {
                         printf("Enemy flatlined at [%d, %d]\n", map_x, map_y);
                     }
@@ -157,38 +157,38 @@ int mouse_button(int button, int x, int y, t_game *game)
     return (0);
 }
 
-int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
-{
-    int i = 0;
+// int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
+// {
+//     int i = 0;
     
-    while (i < game->num_enemies)
-    {
-        t_enemy *enemy = &game->enemies[i];
+//     while (i < game->num_enemies)
+//     {
+//         t_enemy *enemy = &game->enemies[i];
         
-        // AVANT : comparaison directe car enemy était en cellules
-        // int enemy_tile_x = (int)(enemy->x);
-        // int enemy_tile_y = (int)(enemy->y);
+//         // AVANT : comparaison directe car enemy était en cellules
+//         // int enemy_tile_x = (int)(enemy->x);
+//         // int enemy_tile_y = (int)(enemy->y);
         
-        // APRÈS : convertir pixels → cellules
-        int enemy_tile_x = (int)(enemy->x / TILE_SIZE);
-        int enemy_tile_y = (int)(enemy->y / TILE_SIZE);
+//         // APRÈS : convertir pixels → cellules
+//         int enemy_tile_x = (int)(enemy->x / TILE_SIZE);
+//         int enemy_tile_y = (int)(enemy->y / TILE_SIZE);
 
-        if (enemy_tile_x == tile_x && enemy_tile_y == tile_y && enemy->active)
-        {
-            enemy->health -= damage;
-            if (enemy->health <= 0)
-            {
-                //enemy->active = 0;
-                enemy->death_timer = 300;
-                enemy->animation.current_frame = 0;
-                enemy->animation.frame_counter = 0;
-                enemy->state = DEAD;
-                return (1); // Ennemi mort
-            }
-            else
-                return (0);
-        }
-        i++;
-    }
-    return (0);
-}
+//         if (enemy_tile_x == tile_x && enemy_tile_y == tile_y && enemy->active)
+//         {
+//             enemy->health -= damage;
+//             if (enemy->health <= 0)
+//             {
+//                 //enemy->active = 0;
+//                 enemy->death_timer = 50;
+//                 enemy->animation.current_frame = 0;
+//                 enemy->animation.frame_counter = 0;
+//                 enemy->state = DEAD;
+//                 return (1); // Ennemi mort
+//             }
+//             else
+//                 return (0);
+//         }
+//         i++;
+//     }
+//     return (0);
+// }
