@@ -1,5 +1,5 @@
 /* XPM */
-static char *b98ceb8eeedd4983fe752bf4e6c433fdShwaQXorTVbLrcKC[] = {
+static char *_ceaa50906504362a5b6353e27fc82cekMkpNvRRSFhEhZor[] = {
 /* columns rows colors chars-per-pixel */
 "64 64 55 1 ",
 "  c white",
@@ -26,7 +26,7 @@ static char *b98ceb8eeedd4983fe752bf4e6c433fdShwaQXorTVbLrcKC[] = {
 "3 c #2D1F03",
 "4 c #A8AFA8",
 "5 c #9BA19B",
-"6 c None",
+"6 c red",
 "7 c #A7ADA7",
 "8 c #A7AEA7",
 "9 c #A6ADA7",

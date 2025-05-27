@@ -37,11 +37,11 @@
 # define LEFT 65508
 # define RIGHT 65363
 
-# define RAYGUN 2
-# define PORTALGUN 1
-# define HANDS 0
-# define HEALGUN 3
-# define MAX_WEAPONS 4
+#define HANDS 0
+#define PORTALGUN 1  // G dans la carte
+#define RAYGUN 2     // R dans la carte
+#define HEALGUN 3
+#define MAX_WEAPONS 4
 
 # define TILE_SIZE 64
 # define DISPLAY_WIDTH 1920
@@ -233,6 +233,20 @@ typedef struct s_env
 	t_img				img;
 }						t_env;
 
+typedef struct s_open_door
+{
+    double				x;
+    double				y;
+    int					active;
+    t_img				sprite;
+    double				distance_to_player;
+
+	int orientation;
+    double width;    // ✅ NOUVEAU : largeur de l'ouverture
+    double start_x;  // ✅ NOUVEAU : début de l'ouverture
+    double start_y; 
+}						t_open_door;
+
 typedef struct s_map
 {
 	char				**matrix;
@@ -243,6 +257,7 @@ typedef struct s_map
 	t_img				wall_texture;
 	t_img				wall_shooted_texture;
 	t_img				door_texture;
+	t_img				open_door_texture;
 	t_img				door_shooted_texture;
 	t_img				wall_portal_texture;
 	t_img				arm_1;
@@ -290,6 +305,8 @@ typedef struct s_game
 	t_health_bar		health_bar;
 	t_weapon_pickup		*weapon_pickup;
 	int					num_weapon_pickup;
+	t_open_door			*open_doors;
+    int					num_open_doors;
 }						t_game;
 
 typedef struct s_render
@@ -592,4 +609,17 @@ int load_weapon_pickup_sprite(t_game *game, t_weapon_pickup *pickup, char *path)
 int count_weapons_in_map(t_game *game);
 int set_weapon_positions(t_game *game);
 int load_weapon_pickup_sprites(t_game *game);
+void disable_weapon_pickup_at_position(t_game *game, int map_x, int map_y, int weapon_type);
+int	is_not_wall_for_movement(t_map *map, double x, double y);
+int count_open_doors_in_map(t_game *game);
+int load_open_door_sprites(t_game *game);
+int set_open_door_positions(t_game *game);
+void render_open_door(t_game *game, t_open_door *door);
+void draw_open_door_sprite(t_game *game, t_img *sprite, t_point pos, int size);
+void render_all_open_doors(t_game *game);
+void render_door_columns(t_game *game, t_open_door *door, int col_start, int col_end, 
+                        int door_top, int door_bottom, double distance);
+int calculate_opening_width(t_game *game, int start_x, int start_y, int orientation, 
+                           double *width, double *center_x, double *center_y);
+int world_to_screen_column(t_game *game, double world_x, double world_y);
 #endif

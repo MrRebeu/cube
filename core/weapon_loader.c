@@ -147,21 +147,187 @@ static int	load_single_weapon_texture(void *mlx, t_img *tex, char *path)
 
 int	load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 {
+    // ✅ CORRECTION : Réorganiser selon les nouveaux indices
     const char *paths[MAX_WEAPONS][3] = {
-        {"./texture/hands.xpm", "./texture/hands.xpm", "./texture/hands.xpm"},
-        {"./texture/w_raygun.xpm", "./texture/w_raygun_prefire.xpm", "./texture/w_raygun_fire.xpm"},
-        {"./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm"}};
-	int			i;
-
-	i = 0;
-	while (i < 3)
+        {"./texture/hands.xpm", "./texture/hands.xpm", "./texture/hands.xpm"},           // HANDS = 0
+        {"./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm", "./texture/w_portalgun.xpm"}, // PORTALGUN = 1  
+        {"./texture/w_raygun.xpm", "./texture/w_raygun_prefire.xpm", "./texture/w_raygun_fire.xpm"}, // RAYGUN = 2
+        {"./texture/w_healgun.xpm", "./texture/w_healgun.xpm", "./texture/w_healgun.xpm"}  // HEALGUN = 3
+    };
+    
+    int i = 0;
+    while (i < 3)
+    {
+        if (!load_single_weapon_texture(mlx, &weapon_textures[i],
+                (char *)paths[weapon_type][i]))
+            return (0);
+        i++;
+    }
+    return (1);
+}
+void disable_weapon_pickup_at_position(t_game *game, int map_x, int map_y, int weapon_type)
+{
+	double target_x = (map_x * TILE_SIZE) + (TILE_SIZE / 2);
+	double target_y = (map_y * TILE_SIZE) + (TILE_SIZE / 2);
+	int i = 0;
+	
+	while (i < game->num_weapon_pickup)
 	{
-		if (!load_single_weapon_texture(mlx, &weapon_textures[i],
-				(char *)paths[weapon_type][i]))
-			return (0);
+		// Vérifier position ET type d'arme
+		if (game->weapon_pickup[i].active &&
+			game->weapon_pickup[i].weapon_type == weapon_type &&
+			fabs(game->weapon_pickup[i].x - target_x) < 10.0 &&
+			fabs(game->weapon_pickup[i].y - target_y) < 10.0)
+		{
+			game->weapon_pickup[i].active = 0; // ✅ Désactiver le sprite
+			printf("🗑️ Sprite arme désactivé à [%d,%d] type=%d\n", map_x, map_y, weapon_type);
+			return;
+		}
 		i++;
 	}
-	return (1);
+}
+
+int count_open_doors_in_map(t_game *game)
+{
+    int count = 0;
+    int y = 0;
+    int x;
+    
+    while (y < game->map.height)
+    {
+        x = 0;
+        while (x < game->map.width)
+        {
+            if (game->map.matrix[y][x] == 'O')
+                count++;
+            x++;
+        }
+        y++;
+    }
+    return count;
+}
+
+int load_open_door_sprites(t_game *game)
+{
+    int width, height;
+    
+    game->num_open_doors = count_open_doors_in_map(game);
+    
+    if (game->num_open_doors == 0)
+    {
+        game->open_doors = NULL;
+        return (1);
+    }
+    
+    game->open_doors = malloc(sizeof(t_open_door) * game->num_open_doors);
+    if (!game->open_doors)
+        return (0);
+    
+    // Charger le sprite de porte ouverte
+    int i = 0;
+    while (i < game->num_open_doors)
+    {
+        game->open_doors[i].sprite.ptr = mlx_xpm_file_to_image(game->mlx, 
+            "./texture/door_open.xpm", &width, &height);
+        if (!game->open_doors[i].sprite.ptr)
+        {
+            printf("Erreur: door_open.xpm non trouvé\n");
+            return (0);
+        }
+        
+        game->open_doors[i].sprite.width = width;
+        game->open_doors[i].sprite.height = height;
+        game->open_doors[i].sprite.addr = mlx_get_data_addr(game->open_doors[i].sprite.ptr,
+            &game->open_doors[i].sprite.bits_per_pixel,
+            &game->open_doors[i].sprite.line_length,
+            &game->open_doors[i].sprite.endian);
+        
+        game->open_doors[i].active = 0; // Sera activé par set_open_door_positions
+        i++;
+    }
+    
+    return (1);
+}
+int set_open_door_positions(t_game *game)
+{
+    int y = 0;
+    int x;
+    int door_index = 0;
+    int processed[game->map.height][game->map.width];
+    
+    if (game->num_open_doors == 0)
+        return (1);
+    
+    // ✅ Initialiser le tableau des cellules traitées
+    for (int i = 0; i < game->map.height; i++)
+        for (int j = 0; j < game->map.width; j++)
+            processed[i][j] = 0;
+
+    while (y < game->map.height && door_index < game->num_open_doors)
+    {
+        x = 0;
+        while (x < game->map.width && door_index < game->num_open_doors)
+        {
+            if (game->map.matrix[y][x] == 'O' && !processed[y][x])
+            {
+                // ✅ Déterminer l'orientation
+                int walls_ns = 0, walls_ew = 0;
+                if (y > 0 && game->map.matrix[y-1][x] == '1') walls_ns++;
+                if (y < game->map.height-1 && game->map.matrix[y+1][x] == '1') walls_ns++;
+                if (x > 0 && game->map.matrix[y][x-1] == '1') walls_ew++;
+                if (x < game->map.width-1 && game->map.matrix[y][x+1] == '1') walls_ew++;
+                
+                int orientation = (walls_ns > walls_ew) ? 0 : 1;
+                
+                // ✅ Calculer la largeur de l'ouverture
+                double width, center_x, center_y;
+                int cell_count = calculate_opening_width(game, x, y, orientation, 
+                                                        &width, &center_x, &center_y);
+                
+                // ✅ Configurer la porte
+                game->open_doors[door_index].x = center_x;
+                game->open_doors[door_index].y = center_y;
+                game->open_doors[door_index].width = width;
+                game->open_doors[door_index].start_x = x * TILE_SIZE;
+                game->open_doors[door_index].start_y = y * TILE_SIZE;
+                game->open_doors[door_index].orientation = orientation;
+                game->open_doors[door_index].active = 1;
+                
+                // ✅ Marquer toutes les cellules de cette ouverture comme traitées
+                if (orientation == 0) // Horizontale
+                {
+                    for (int i = 0; i < cell_count; i++)
+                    {
+                        if (x + i < game->map.width)
+                        {
+                            processed[y][x + i] = 1;
+                            game->map.matrix[y][x + i] = '0'; // Passable
+                        }
+                    }
+                }
+                else // Verticale
+                {
+                    for (int i = 0; i < cell_count; i++)
+                    {
+                        if (y + i < game->map.height)
+                        {
+                            processed[y + i][x] = 1;
+                            game->map.matrix[y + i][x] = '0'; // Passable
+                        }
+                    }
+                }
+                
+                printf("🚪 Ouverture créée : largeur=%.0f, orientation=%s, centre=[%.0f,%.0f]\n", 
+                       width, (orientation == 0) ? "horizontale" : "verticale", center_x, center_y);
+                
+                door_index++;
+            }
+            x++;
+        }
+        y++;
+    }
+    
+    return (1);
 }
 
 int load_hands(t_game *game)

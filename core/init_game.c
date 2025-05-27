@@ -75,6 +75,10 @@ int init_game(t_game *game, char *map_file)
         return (0);
     if (!set_weapon_positions(game)) // ← NOUVEAU
         return (0);
+    if (!load_open_door_sprites(game))  // ✅ NOUVEAU
+        return (0);
+    if (!set_open_door_positions(game)) // ✅ NOUVEAU
+        return (0);
     if (!init_all_enemies(game))
         return (0);
     init_portals(game);

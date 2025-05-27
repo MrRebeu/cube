@@ -73,6 +73,25 @@ t_intersect	h_intersection(int x_player, int y_player, double radiant_angle)
 	return (h);
 }
 
+int	is_not_wall_for_movement(t_map *map, double x, double y)
+{
+	int	map_x;
+	int	map_y;
+
+	map_x = (int)(x / TILE_SIZE);
+	map_y = (int)(y / TILE_SIZE);
+	if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
+		return (0);
+	
+	// ✅ Pour le mouvement : le joueur peut passer dans les portes ouvertes
+	if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D'
+		|| map->matrix[map_y][map_x] == 'P' || map->matrix[map_y][map_x] == 'i'
+		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M')
+		return (0);
+	
+	// ✅ 'O' (porte ouverte) = le joueur PEUT passer
+	return (1);
+}
 
 int	is_not_wall(t_map *map, double x, double y)
 {
@@ -83,13 +102,17 @@ int	is_not_wall(t_map *map, double x, double y)
 	map_y = (int)(y / TILE_SIZE);
 	if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
 		return (0);
+	
+	// ✅ Pour le raycasting : 'O' bloque les rayons (pour avoir un rendu)
 	if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D'
 		|| map->matrix[map_y][map_x] == 'P' || map->matrix[map_y][map_x] == 'i'
-		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M')
+		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M'
+		|| map->matrix[map_y][map_x] == 'O')
 		return (0);
 	else
 		return (1);
 }
+
 
 double	normalize_angle(double angle)
 {

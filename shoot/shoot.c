@@ -218,7 +218,6 @@ void calculate_shoot(t_game *game)
 
 //     return (0);
 // }
-
 int mouse_button(int button, int x, int y, t_game *game)
 {
     (void)x;
@@ -253,16 +252,35 @@ int mouse_button(int button, int x, int y, t_game *game)
     }
     else if (button == 4 || button == 5) // Scroll souris
     {
-        // Version simple : cycle entre toutes les armes
+        // ✅ CORRECTION : Cycle seulement entre les armes possédées
         if (button == 4) // Scroll up
         {
-            game->current_weapon = (game->current_weapon + 1) % MAX_WEAPONS;
+            int next_weapon = (game->current_weapon + 1) % MAX_WEAPONS;
+            while (!game->player.has_weapon[next_weapon] && next_weapon != game->current_weapon)
+            {
+                next_weapon = (next_weapon + 1) % MAX_WEAPONS;
+            }
+            if (game->player.has_weapon[next_weapon])
+            {
+                game->current_weapon = next_weapon;
+                game->player.current_weapon = next_weapon;
+                printf("✅ Arme changée (scroll) : %d\n", next_weapon);
+            }
         }
         else // Scroll down
         {
-            game->current_weapon = (game->current_weapon - 1 + MAX_WEAPONS) % MAX_WEAPONS;
+            int prev_weapon = (game->current_weapon - 1 + MAX_WEAPONS) % MAX_WEAPONS;
+            while (!game->player.has_weapon[prev_weapon] && prev_weapon != game->current_weapon)
+            {
+                prev_weapon = (prev_weapon - 1 + MAX_WEAPONS) % MAX_WEAPONS;
+            }
+            if (game->player.has_weapon[prev_weapon])
+            {
+                game->current_weapon = prev_weapon;
+                game->player.current_weapon = prev_weapon;
+                printf("✅ Arme changée (scroll) : %d\n", prev_weapon);
+            }
         }
-        game->player.current_weapon = game->current_weapon;
     }
     else if (button == 3 && game->current_weapon == PORTALGUN)
     {

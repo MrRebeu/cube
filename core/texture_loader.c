@@ -12,6 +12,43 @@
 
 #include "cube3d.h"
 
+int calculate_opening_width(t_game *game, int start_x, int start_y, int orientation, 
+                           double *width, double *center_x, double *center_y)
+{
+    int count = 0;
+    int x = start_x;
+    int y = start_y;
+    
+    if (orientation == 0) // Ouverture horizontale
+    {
+        // Compter combien de cellules 'O' consécutives horizontalement
+        while (x < game->map.width && 
+               (game->map.matrix[y][x] == 'O' || game->map.matrix[y][x] == '0'))
+        {
+            count++;
+            x++;
+        }
+        *width = count * TILE_SIZE;
+        *center_x = (start_x * TILE_SIZE) + (*width / 2);
+        *center_y = (start_y * TILE_SIZE) + (TILE_SIZE / 2);
+    }
+    else // Ouverture verticale
+    {
+        // Compter combien de cellules 'O' consécutives verticalement
+        while (y < game->map.height && 
+               (game->map.matrix[y][x] == 'O' || game->map.matrix[y][x] == '0'))
+        {
+            count++;
+            y++;
+        }
+        *width = count * TILE_SIZE;
+        *center_x = (start_x * TILE_SIZE) + (TILE_SIZE / 2);
+        *center_y = (start_y * TILE_SIZE) + (*width / 2);
+    }
+    
+    return count;
+}
+
 int	load_basic_textures(t_game *game)
 {
 	int	width;
@@ -67,6 +104,16 @@ int	load_door_textures(t_game *game)
 			&game->map.door_shooted_texture.bits_per_pixel,
 			&game->map.door_shooted_texture.line_length,
 			&game->map.door_shooted_texture.endian);
+	game->map.open_door_texture.ptr = mlx_xpm_file_to_image(game->mlx,
+			"./texture/door_open.xpm", &width, &height);
+	if (!game->map.open_door_texture.ptr)
+		return (0);
+	game->map.open_door_texture.width = width;
+	game->map.open_door_texture.height = height;
+	game->map.open_door_texture.addr = mlx_get_data_addr(game->map.open_door_texture.ptr,
+			&game->map.open_door_texture.bits_per_pixel,
+			&game->map.open_door_texture.line_length,
+			&game->map.open_door_texture.endian);
 	return (1);
 }
 

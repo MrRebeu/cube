@@ -34,6 +34,7 @@ void check_weapon_pickup(t_player *player)
 				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = RAYGUN;
 				player->game->current_weapon = RAYGUN;
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
 			}
 		}
 		if (cell_type == 'G')
@@ -44,6 +45,7 @@ void check_weapon_pickup(t_player *player)
 				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = PORTALGUN;
 				player->game->current_weapon = PORTALGUN;
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
 			}
 		}
 		if (cell_type == 'R')
@@ -54,6 +56,7 @@ void check_weapon_pickup(t_player *player)
 				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = RAYGUN;
 				player->game->current_weapon = RAYGUN;
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);	
 			}
 		}
 		if (cell_type == 'H')
@@ -64,6 +67,7 @@ void check_weapon_pickup(t_player *player)
 				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = HEALGUN;
 				player->game->current_weapon = HEALGUN;
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
 			}
 		}
 	}
@@ -91,7 +95,6 @@ int	key_release(int keycode, t_player *player)
 		player->right = false;
 	return (0);
 }
-
 int	key_press(int keycode, t_player *player)
 {
 	if (keycode == ESC)
@@ -114,44 +117,62 @@ int	key_press(int keycode, t_player *player)
 		player->left = true;
 	if (keycode == RIGHT)
 		player->right = true;
+	
+	// ✅ CORRECTION : Vérifier si le joueur possède l'arme
 	if (keycode == 48) // Touche 0 pour les mains
-    {
-        if (player->has_weapon[HANDS])
-        {
-            player->current_weapon = HANDS;
-            if (player->game)
-                player->game->current_weapon = HANDS;
-        }
-    }
-    if (keycode == 49) // Touche 1 pour raygun
-    {
-        if (player->has_weapon[RAYGUN])
-        {
-            player->current_weapon = RAYGUN;
-            if (player->game)
-                player->game->current_weapon = RAYGUN;
-        }
-        else
-        {
-            printf("❌ Raygun non collecté !\n");
-        }
-    }
-    if (keycode == 50) // Touche 2 pour portal gun
-    {
-        if (player->has_weapon[PORTALGUN])
-        {
-            player->current_weapon = PORTALGUN;
-            if (player->game)
-                player->game->current_weapon = PORTALGUN;
-        }
-        else
-        {
-            printf("❌ Portal Gun non collecté !\n");
-        }
-    }
-    return (0);
+	{
+		if (player->has_weapon[HANDS])
+		{
+			player->current_weapon = HANDS;
+			if (player->game)
+				player->game->current_weapon = HANDS;
+			printf("✅ Arme changée : Mains\n");
+		}
+	}
+	if (keycode == 49) // Touche 1 pour raygun
+	{
+		if (player->has_weapon[RAYGUN])
+		{
+			player->current_weapon = RAYGUN;
+			if (player->game)
+				player->game->current_weapon = RAYGUN;
+			printf("✅ Arme changée : Ray Gun\n");
+		}
+		else
+		{
+			printf("❌ Ray Gun non collecté !\n");
+		}
+	}
+	if (keycode == 50) // Touche 2 pour portal gun
+	{
+		if (player->has_weapon[PORTALGUN])
+		{
+			player->current_weapon = PORTALGUN;
+			if (player->game)
+				player->game->current_weapon = PORTALGUN;
+			printf("✅ Arme changée : Portal Gun\n");
+		}
+		else
+		{
+			printf("❌ Portal Gun non collecté !\n");
+		}
+	}
+	if (keycode == 51) // Touche 3 pour heal gun
+	{
+		if (player->has_weapon[HEALGUN])
+		{
+			player->current_weapon = HEALGUN;
+			if (player->game)
+				player->game->current_weapon = HEALGUN;
+			printf("✅ Arme changée : Heal Gun\n");
+		}
+		else
+		{
+			printf("❌ Heal Gun non collecté !\n");
+		}
+	}
+	return (0);
 }
-
 int	mouse_move(int x, int y, t_game *game)
 {
 	int		center_x;
@@ -179,6 +200,22 @@ int	mouse_move(int x, int y, t_game *game)
 }
 
 
+// int	is_wall(t_game *game, float x, float y)
+// {
+// 	int	map_x;
+// 	int	map_y;
+
+// 	map_x = (int)(x / TILE_SIZE);
+// 	map_y = (int)(y / TILE_SIZE);
+// 	if (map_x < 0 || map_x >= game->map.width || map_y < 0
+// 		|| map_y >= game->map.height)
+// 		return (1);
+// 	if (game->map.matrix[map_y][map_x] == '1'
+// 		|| game->map.matrix[map_y][map_x] == 'D')
+// 		return (1);
+// 	return (0);
+// }
+
 int	is_wall(t_game *game, float x, float y)
 {
 	int	map_x;
@@ -189,10 +226,7 @@ int	is_wall(t_game *game, float x, float y)
 	if (map_x < 0 || map_x >= game->map.width || map_y < 0
 		|| map_y >= game->map.height)
 		return (1);
-	if (game->map.matrix[map_y][map_x] == '1'
-		|| game->map.matrix[map_y][map_x] == 'D')
-		return (1);
-	return (0);
+	return (!is_not_wall_for_movement(&game->map, x, y));
 }
 
 void	move_player(t_player *player)
