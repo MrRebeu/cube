@@ -11,16 +11,19 @@
 /* ************************************************************************** */
 
 #include "../cube3d.h"
-// Sostituisci la tua calculate_shoot con questa versione
+
 void calculate_shoot(t_game *game)
 {
     double impact_x;
     double impact_y;
     int map_x;
     int map_y;
+    int portal_orientation;
+    int center_ray_index;
+    t_ray *center_ray;
 
-    int center_ray_index = DISPLAY_WIDTH / 2;
-    t_ray *center_ray = &game->rays[center_ray_index];
+    center_ray_index = DISPLAY_WIDTH / 2;
+    center_ray = &game->rays[center_ray_index];
 
     if (game->current_weapon == PORTALGUN)
     {
@@ -30,18 +33,67 @@ void calculate_shoot(t_game *game)
             impact_y = center_ray->wall_hit_y;
             map_x = (int)(impact_x / TILE_SIZE);
             map_y = (int)(impact_y / TILE_SIZE);
+            
+            // CALCULER L'ORIENTATION DU PORTAIL (vers quelle direction il "regarde")
+            if (center_ray->hit_vertical)
+            {
+                if (cos(center_ray->radiant_angle) > 0)
+                    portal_orientation = 3; // Mur à l'ouest → portail regarde vers l'ouest
+                else
+                    portal_orientation = 1; // Mur à l'est → portail regarde vers l'est
+            }
+            else
+            {
+                if (sin(center_ray->radiant_angle) > 0)
+                    portal_orientation = 0; // Mur au nord → portail regarde vers le nord
+                else
+                    portal_orientation = 2; // Mur au sud → portail regarde vers le sud
+            }
+            
+            // PLACER LE PORTAIL ET STOCKER SON ORIENTATION
             if (game->portal_count < 2)
             {
                 game->map.matrix[map_y][map_x] = 'P';
+                
+                // Stocker dans le bon portail
+                if (game->portal_count == 0)
+                {
+                    game->portal_1.x = (map_x * TILE_SIZE) + (TILE_SIZE / 2);
+                    game->portal_1.y = (map_y * TILE_SIZE) + (TILE_SIZE / 2);
+                    game->portal_1.is_active = 1;
+                    game->portal_1.orientation = portal_orientation;
+                }
+                else
+                {
+                    game->portal_2.x = (map_x * TILE_SIZE) + (TILE_SIZE / 2);
+                    game->portal_2.y = (map_y * TILE_SIZE) + (TILE_SIZE / 2);
+                    game->portal_2.is_active = 1;
+                    game->portal_2.orientation = portal_orientation;
+                }
+                
                 game->portal_count++;
-                printf("Portal added. New count: %d\n", game->portal_count);
+                printf("Portal %d créé à [%d, %d], orientation: %s\n", 
+                       game->portal_count, map_x, map_y,
+                       (portal_orientation == 0) ? "Nord" :
+                       (portal_orientation == 1) ? "Est" :
+                       (portal_orientation == 2) ? "Sud" : "Ouest");
             }
             else
             {
                 remove_all_portals(game);
                 game->map.matrix[map_y][map_x] = 'P';
+                
+                game->portal_1.x = (map_x * TILE_SIZE) + (TILE_SIZE / 2);
+                game->portal_1.y = (map_y * TILE_SIZE) + (TILE_SIZE / 2);
+                game->portal_1.is_active = 1;
+                game->portal_1.orientation = portal_orientation;
+                
                 game->portal_count = 1;
-                printf("All portals removed and new one added. Count: %d\n", game->portal_count);
+                printf("Nouveaux portails, premier à [%d, %d], orientation: %s\n", 
+                       map_x, map_y,
+                       (portal_orientation == 0) ? "Nord" :
+                       (portal_orientation == 1) ? "Est" :
+                       (portal_orientation == 2) ? "Sud" : "Ouest");
             }
         }
     }

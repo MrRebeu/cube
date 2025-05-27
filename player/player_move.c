@@ -186,5 +186,6 @@ void	move_player(t_player *player)
 		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
+	check_portal_teleportation(player->game);
 }
 
