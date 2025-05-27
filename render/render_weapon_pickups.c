@@ -24,6 +24,7 @@ void render_weapon_pickup(t_game *game, t_weapon_pickup *weapon)
         return;
         
     setup_enemy_render_params(game, &renderer);
+    renderer.draw_end += 400;
     draw_weapon_pickup_sprite(game, &weapon->sprite, 
                              (t_point){renderer.draw_start, renderer.draw_end}, 
                              renderer.sprite_size);
@@ -46,7 +47,7 @@ void calculate_weapon_screen_pos(t_game *game, t_render *render)
 {
     double distance_to_projection_plane;
     double corrected_dist;
-    double weapon_height = TILE_SIZE * 0.8;
+    double weapon_height = TILE_SIZE * 0.1;
     
     render->x = (int)((DISPLAY_WIDTH / 2) * (1 + render->floor_x / render->floor_y));
     
@@ -69,6 +70,7 @@ void draw_weapon_pickup_sprite(t_game *game, t_img *sprite, t_point pos, int siz
     char *src, *dst;
     unsigned int color;
     int red, green, blue;
+    int skip_pixel = 0;
     
     if (!sprite || !sprite->addr || size <= 0)
         return;
@@ -93,8 +95,23 @@ void draw_weapon_pickup_sprite(t_game *game, t_img *sprite, t_point pos, int siz
             green = (color >> 8) & 0xFF;
             blue = color & 0xFF;
 
-            // Skip black/transparent pixels
-            if (!(red < 10 && green < 10 && blue < 10))
+            // ✅ LOGIQUE DE TRANSPARENCE COMME LES ENNEMIS
+            skip_pixel = 0;
+            int tolerance = 2;
+            
+            // Skip pixels noirs (transparence classique)
+            if (red < 10 && green < 10 && blue < 10)
+                skip_pixel = 1;
+            
+            // Skip pixels rouge pur (comme les ennemis)
+            if (abs(red - 255) <= tolerance && abs(green - 0) <= tolerance && abs(blue - 0) <= tolerance)
+                skip_pixel = 1;
+            
+            // Skip pixels ffa*** spécifiquement
+            if (red >= 250 && green >= 160 && green <= 175) // ffa*** avec tolérance
+                skip_pixel = 1;
+
+            if (!skip_pixel)
             {
                 x = pos.x + i;
                 y = pos.y + j;

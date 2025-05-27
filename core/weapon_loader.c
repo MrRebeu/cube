@@ -14,21 +14,29 @@
 
 int load_weapon_pickup_sprites(t_game *game)
 {
-	int i;
-
-	i = 0;
-	game->num_weapon_pickup = count_weapons_in_map(game);
-	if (game->num_weapon_pickup == 0)
-		return (1);
-	game->weapon_pickup = malloc(sizeof(t_weapon_pickup) * game->num_weapon_pickup);
-	if (!game->weapon_pickup)
-		return (0);
-	while (i < game->num_weapon_pickup)
-	{
-		game->weapon_pickup[i].active = 1;
-		i++;
-	}	
-	return (1);
+    game->num_weapon_pickup = count_weapons_in_map(game);
+    
+    // ✅ Si pas d'armes, c'est OK !
+    if (game->num_weapon_pickup == 0)
+    {
+        game->weapon_pickup = NULL;
+        return (1); // ← Succès, pas d'échec
+    }
+    
+    game->weapon_pickup = malloc(sizeof(t_weapon_pickup) * game->num_weapon_pickup);
+    if (!game->weapon_pickup)
+        return (0); // ← Ça c'est un vrai échec (malloc failed)
+    
+    // Initialiser les armes
+    int i = 0;
+    while (i < game->num_weapon_pickup)
+    {
+        game->weapon_pickup[i].active = 0;
+        game->weapon_pickup[i].sprite.ptr = NULL;
+        i++;
+    }
+    
+    return (1);
 }
 
 int count_weapons_in_map(t_game *game)
@@ -66,45 +74,59 @@ int load_weapon_pickup_sprite(t_game *game, t_weapon_pickup *pickup, char *path)
         &pickup->sprite.endian);
     return (1);
 }
-
 int set_weapon_positions(t_game *game)
 {
-	int y;
-	int x;
-	int weapon_index;
+    int y = 0;
+    int x;
+    int weapon_index = 0;
 
-	y = 0;
-	weapon_index = 0;
-	while (y < game->map.height)
-	{
-		x = 0;
-		while (x < game->map.width)
-		{
-			if ((game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G') &&
-				weapon_index < game->num_weapon_pickup)
-			{
-				game->weapon_pickup[weapon_index].x = (x * TILE_SIZE) + (TILE_SIZE / 2);
-                game->weapon_pickup[weapon_index].y = (y * TILE_SIZE) + (TILE_SIZE / 2);
-                if (game->map.matrix[y][x] == 'R')
-					game->weapon_pickup[weapon_index].weapon_type = RAYGUN;
-                    load_weapon_pickup_sprite(game, &game->weapon_pickup[weapon_index], 
-                        "./texture/raygun_pickup.xpm"); 
-			}
-			else // 'G'
+    // Si pas d'armes allouées, pas d'erreur
+    if (game->num_weapon_pickup == 0)
+        return (1);
+
+    while (y < game->map.height)
+    {
+        x = 0;
+        while (x < game->map.width)
+        {
+            if ((game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G') &&
+                weapon_index < game->num_weapon_pickup)
             {
-                game->weapon_pickup[weapon_index].weapon_type = PORTALGUN;
-                load_weapon_pickup_sprite(game, &game->weapon_pickup[weapon_index], 
-                "./texture/portalgun_pickup.xpm"); // ← Ton sprite de portal gun au sol
+                game->weapon_pickup[weapon_index].x = (x * TILE_SIZE) + (TILE_SIZE / 2);
+                game->weapon_pickup[weapon_index].y = (y * TILE_SIZE) + (TILE_SIZE / 2);
+                
+                if (game->map.matrix[y][x] == 'R')
+                {
+                    game->weapon_pickup[weapon_index].weapon_type = RAYGUN;
+                    if (!load_weapon_pickup_sprite(game, &game->weapon_pickup[weapon_index], 
+                        "./texture/raygun_pickup.xpm"))
+                    {
+                        printf("Warning: raygun_pickup.xpm non trouvé\n");
+                        // Continue quand même au lieu de faire échouer
+                    }
+                }
+                else if (game->map.matrix[y][x] == 'G')
+                {
+                    game->weapon_pickup[weapon_index].weapon_type = PORTALGUN;
+                    if (!load_weapon_pickup_sprite(game, &game->weapon_pickup[weapon_index], 
+                        "./texture/portalgun_pickup.xpm"))
+                    {
+                        printf("Warning: portalgun_pickup.xpm non trouvé\n");
+                        // Continue quand même au lieu de faire échouer
+                    }
+                }
+                
+                game->weapon_pickup[weapon_index].active = 1;
+                weapon_index++;
             }
-			game->weapon_pickup[weapon_index].active = 1;
-			weapon_index++;
-		}
-		x++;
-	y++;
-	}
-	return (weapon_index > 0);
+            x++;
+        }
+        y++;
+    }
+    
+    // ✅ Toujours succès - même s'il n'y a pas d'armes
+    return (1);
 }
-
 static int	load_single_weapon_texture(void *mlx, t_img *tex, char *path)
 {
 	int	width;
