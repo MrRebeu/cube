@@ -41,6 +41,207 @@
 //                          renderer.sprite_size);
 // }
 
+void render_open_door_as_sprite(t_game *game, t_open_door *door)
+{
+    if (!door->active)
+        return;
+    
+    // ✅ CALCUL DE LA POSITION FIXE DE LA PORTE
+    double door_world_x = door->x;
+    double door_world_y = door->y;
+    
+    // ✅ Vecteur du joueur vers la porte
+    double dx = door_world_x - game->player.x;
+    double dy = door_world_y - game->player.y;
+    
+    // ✅ Distance à la porte
+    double distance = sqrt(dx * dx + dy * dy);
+    if (distance < 10.0 || distance > 1000.0)
+        return;
+    
+    // ✅ Angle de la porte par rapport au joueur
+    double door_angle = atan2(dy, dx);
+    door_angle = normalize_angle(door_angle);
+    
+    // ✅ Différence d'angle avec la direction du joueur
+    double angle_diff = normalize_angle(door_angle - game->player.angle);
+    
+    // ✅ Vérifier si la porte est dans le champ de vision
+    double half_fov = game->player.fov / 2.0;
+    if (fabs(angle_diff) > half_fov)
+        return;
+    
+    // ✅ Convertir l'angle en colonne d'écran FIXE
+    double screen_ratio = angle_diff / half_fov;
+    int door_screen_column = (DISPLAY_WIDTH / 2) + (int)(screen_ratio * (DISPLAY_WIDTH / 2));
+    
+    // ✅ Clamp à l'écran
+    if (door_screen_column < 0 || door_screen_column >= DISPLAY_WIDTH)
+        return;
+    
+    // ✅ Vérifier l'occlusion avec le depth buffer
+    if (distance >= game->depth_buffer[door_screen_column])
+        return;
+    
+    // ✅ Calculer la taille basée sur la distance
+    double distance_to_projection = (DISPLAY_WIDTH / 2.0) / tan(game->player.fov / 2.0);
+    double door_height = TILE_SIZE * 1.5;
+    int sprite_height = (int)((door_height / distance) * distance_to_projection);
+    
+    if (sprite_height < 1) sprite_height = 1;
+    if (sprite_height > DISPLAY_HEIGHT * 2) sprite_height = DISPLAY_HEIGHT * 2;
+    
+    // ✅ Position verticale
+    int door_top = (DISPLAY_HEIGHT / 2) - (sprite_height / 2) + game->pitch;
+    int door_bottom = door_top + sprite_height;
+    
+    // ✅ Largeur de la porte (quelques pixels seulement pour être fine)
+    int door_width = fmax(1, sprite_height / 8); // Ultra-fine !
+    
+    // ✅ Dessiner la porte FIXE sur quelques colonnes
+    render_fixed_door_columns(game, door, door_screen_column, door_width, 
+                             door_top, door_bottom, distance);
+}
+
+void render_fixed_door_columns(t_game *game, t_open_door *door, int center_column, 
+                              int door_width, int door_top, int door_bottom, double distance)
+{
+    (void)distance;
+    
+    if (!door->sprite.ptr)
+        return;
+    
+    // ✅ Calculer les colonnes de début et fin
+    int start_col = center_column - door_width / 2;
+    int end_col = center_column + door_width / 2;
+    
+    // ✅ Clamp aux limites d'écran
+    if (start_col < 0) start_col = 0;
+    if (end_col >= DISPLAY_WIDTH) end_col = DISPLAY_WIDTH - 1;
+    
+    int sprite_height = door_bottom - door_top;
+    if (sprite_height <= 0) return;
+    
+    // ✅ Pour chaque colonne de la porte
+    for (int col = start_col; col <= end_col; col++)
+    {
+        if (col < 0 || col >= DISPLAY_WIDTH)
+            continue;
+        
+        // ✅ Position X dans la texture (centrée)
+        int tex_x = (door->sprite.width / 2); // Centre de la texture
+        if (door_width > 1)
+        {
+            // Si la porte fait plusieurs pixels, étaler sur la texture
+            tex_x = ((col - start_col) * door->sprite.width) / door_width;
+        }
+        if (tex_x >= door->sprite.width) tex_x = door->sprite.width - 1;
+        
+        // ✅ Pour chaque pixel vertical
+        for (int y = door_top; y <= door_bottom; y++)
+        {
+            if (y < 0 || y >= DISPLAY_HEIGHT)
+                continue;
+            
+            // ✅ Position Y dans la texture
+            int tex_y = ((y - door_top) * door->sprite.height) / sprite_height;
+            if (tex_y >= door->sprite.height) tex_y = door->sprite.height - 1;
+            
+            // ✅ Récupérer le pixel de texture
+            char *src = door->sprite.addr + tex_y * door->sprite.line_length + 
+                       tex_x * (door->sprite.bits_per_pixel / 8);
+            unsigned int color = *(unsigned int *)src;
+            
+            int red = (color >> 16) & 0xFF;
+            int green = (color >> 8) & 0xFF;
+            int blue = color & 0xFF;
+            
+            // ✅ Transparence pour ne garder que les montants
+            int skip_pixel = 0;
+            
+            if (red < 15 && green < 15 && blue < 15) // Noir
+                skip_pixel = 1;
+            if (abs(red - 255) <= 3 && abs(green - 0) <= 3 && abs(blue - 0) <= 3) // Rouge pur
+                skip_pixel = 1;
+            if (red > 240 && green > 240 && blue > 240) // Blanc
+                skip_pixel = 1;
+            
+            // ✅ Dessiner le pixel FIXE
+            if (!skip_pixel)
+            {
+                char *dst = game->screen.addr + y * game->screen.line_length + 
+                           col * (game->screen.bits_per_pixel / 8);
+                *(unsigned int *)dst = color;
+            }
+        }
+    }
+}
+
+void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int size)
+{
+    int i = 0;
+    int j;
+    int src_x, src_y, x, y;
+    char *src, *dst;
+    unsigned int color;
+    int red, green, blue;
+    
+    if (!sprite || !sprite->addr || size <= 0)
+        return;
+    
+    while (i < size)
+    {
+        j = 0;
+        while (j < size)
+        {
+            // ✅ Échantillonnage de la texture
+            src_x = i * sprite->width / size;
+            src_y = j * sprite->height / size;
+            
+            if (src_x < 0) src_x = 0;
+            else if (src_x >= sprite->width) src_x = sprite->width - 1;
+            if (src_y < 0) src_y = 0;
+            else if (src_y >= sprite->height) src_y = sprite->height - 1;
+            
+            src = sprite->addr + src_y * sprite->line_length + src_x * (sprite->bits_per_pixel / 8);
+            color = *(unsigned int *)src;
+            
+            red = (color >> 16) & 0xFF;
+            green = (color >> 8) & 0xFF;
+            blue = color & 0xFF;
+            
+            // ✅ TRANSPARENCE ULTRA-PRÉCISE pour porte fine
+            int skip_pixel = 0;
+            
+            // Skip pixels noirs (fond transparent)
+            if (red < 15 && green < 15 && blue < 15)
+                skip_pixel = 1;
+            
+            // Skip pixels rouge pur (marqueur de transparence)
+            if (abs(red - 255) <= 3 && abs(green - 0) <= 3 && abs(blue - 0) <= 3)
+                skip_pixel = 1;
+            
+            // Skip pixels blancs très clairs (souvent transparents)
+            if (red > 240 && green > 240 && blue > 240)
+                skip_pixel = 1;
+            
+            // ✅ NE DESSINER QUE LES PIXELS OPAQUES (montants de porte)
+            if (!skip_pixel)
+            {
+                x = pos.x + i;
+                y = pos.y + j;
+                if (x >= 0 && x < DISPLAY_WIDTH && y >= 0 && y < DISPLAY_HEIGHT)
+                {
+                    dst = game->screen.addr + y * game->screen.line_length + x * (game->screen.bits_per_pixel / 8);
+                    *(unsigned int *)dst = color;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+}
+
 void render_open_door(t_game *game, t_open_door *door)
 {
     double dx, dy, distance;
@@ -260,7 +461,7 @@ void render_all_open_doors(t_game *game)
     while (i < game->num_open_doors)
     {
         if (game->open_doors[i].active)
-            render_open_door(game, &game->open_doors[i]);
+            render_open_door_as_sprite(game, &game->open_doors[i]); // ← Nouvelle fonction
         i++;
     }
 }

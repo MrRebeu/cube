@@ -622,4 +622,22 @@ void render_door_columns(t_game *game, t_open_door *door, int col_start, int col
 int calculate_opening_width(t_game *game, int start_x, int start_y, int orientation, 
                            double *width, double *center_x, double *center_y);
 int world_to_screen_column(t_game *game, double world_x, double world_y);
+// Dans la section render functions
+void render_open_door_as_sprite(t_game *game, t_open_door *door);
+void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int size);
+// Dans les fonctions de rendu
+void render_fixed_door_columns(t_game *game, t_open_door *door, int center_column, 
+                              int door_width, int door_top, int door_bottom, double distance);
+// Dans les fonctions de raycasting
+void check_open_doors_on_ray(t_game *game, int column_x, double radiant_angle);
+void render_door_on_column(t_game *game, t_open_door *door, int column_x, double distance);
+int check_and_render_door_on_column(t_game *game, int column_x, t_ray *ray);
+void render_door_column_fixed(t_game *game, t_open_door *door, int column_x, double distance);
+double check_open_door_on_ray(t_game *game, double radiant_angle);
+
+// Fonctions de rendu
+void render_open_door_ultra_thin(t_game *game, int column_x, t_render *renderer, t_ray *ray);
+void render_simple_door_line(t_game *game, int column_x, t_render *renderer);
+t_open_door *find_door_at_position(t_game *game, int map_x, int map_y);
+
 #endif

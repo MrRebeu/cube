@@ -16,34 +16,24 @@ void render_column(t_game *game, int column_x, t_ray *ray)
 {
     t_render renderer;
 
-    /* 1. Calculate wall dimensions */
-    // Correct distance to prevent fisheye effect
     renderer.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle, ray->player_angle);
-    
-    // Calculate wall and door height on screen
     renderer.wall_height = calc_wall_height(renderer.corrected_dist);
-    renderer.door_height = (int)(renderer.wall_height * 1.3);  // Doors are 30% taller than walls
     
-    /* 2. Determine vertical rendering boundaries */
     renderer.draw_start = (DISPLAY_HEIGHT / 2) - (renderer.wall_height / 2) + game->pitch;
     renderer.draw_end = (DISPLAY_HEIGHT / 2) + (renderer.wall_height / 2) + game->pitch;
     
-    // Handle texture offset for very tall walls
-    renderer.texture_offset_y = 0;
-    if (renderer.wall_height > DISPLAY_HEIGHT)
-        renderer.texture_offset_y = (renderer.wall_height - DISPLAY_HEIGHT) / 2;
+    if (renderer.draw_start < 0) renderer.draw_start = 0;
+    if (renderer.draw_end >= DISPLAY_HEIGHT) renderer.draw_end = DISPLAY_HEIGHT - 1;
     
-    // Clamp values to screen dimensions
-    if (renderer.draw_start < 0)
-        renderer.draw_start = 0;
-    if (renderer.draw_end >= DISPLAY_HEIGHT)
-        renderer.draw_end = DISPLAY_HEIGHT - 1;
+    // ✅ NOUVEAU : Vérifier les portes AVANT de rendre les murs
+    if (check_and_render_door_on_column(game, column_x, ray))
+    {
+        // Si une porte a été rendue, ne pas rendre le mur derrière
+        render_floor_and_ceiling(game, column_x, &renderer);
+        return;
+    }
     
-    /* 3. Render column sequentially (from top to bottom) */
-    // Render sky (top portion)
-    //render_sky(game, column_x, &renderer);
-    
-    // Render wall or door based on hit type
+    // Rendu normal des murs
     if (ray->hit_type == 'P')
         render_wall_portal(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'D')
@@ -52,12 +42,73 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_wall_shooted(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'd')
         render_door_shooted(game, column_x, &renderer, ray);
-    else if (ray->hit_type == 'O')
-        render_open_door(game, column_x, &renderer, ray);    
+    else if (ray->hit_type == 'O') // ✅ NOUVEAU
+		render_open_door_ultra_thin(game, column_x, &renderer, ray);
     else
         render_wall(game, column_x, &renderer, ray);
-    render_floor(game, column_x, &renderer);
+        
+    render_floor_and_ceiling(game, column_x, &renderer);
 }
+
+void render_door_column_fixed(t_game *game, t_open_door *door, int column_x, double distance)
+{
+    if (!door->sprite.ptr || distance < 5.0)
+        return;
+    
+    // ✅ Calculer la hauteur basée sur la distance réelle
+    double distance_to_projection = (DISPLAY_WIDTH / 2.0) / tan(game->player.fov / 2.0);
+    double door_height_world = TILE_SIZE * 1.4;
+    int door_height_screen = (int)((door_height_world / distance) * distance_to_projection);
+    
+    if (door_height_screen < 1) door_height_screen = 1;
+    if (door_height_screen > DISPLAY_HEIGHT) door_height_screen = DISPLAY_HEIGHT;
+    
+    // ✅ Position verticale
+    int door_top = (DISPLAY_HEIGHT / 2) - (door_height_screen / 2) + game->pitch;
+    int door_bottom = door_top + door_height_screen;
+    
+    if (door_top < 0) door_top = 0;
+    if (door_bottom >= DISPLAY_HEIGHT) door_bottom = DISPLAY_HEIGHT - 1;
+    
+    // ✅ Utiliser le centre de la texture (pour une porte fine)
+    int tex_x = door->sprite.width / 2;
+    
+    // ✅ Dessiner uniquement sur cette colonne
+    for (int y = door_top; y <= door_bottom; y++)
+    {
+        // Position Y dans la texture
+        int tex_y = ((y - door_top) * door->sprite.height) / (door_bottom - door_top + 1);
+        if (tex_y >= door->sprite.height) tex_y = door->sprite.height - 1;
+        
+        // Récupérer le pixel
+        char *src = door->sprite.addr + tex_y * door->sprite.line_length + 
+                   tex_x * (door->sprite.bits_per_pixel / 8);
+        unsigned int color = *(unsigned int *)src;
+        
+        int red = (color >> 16) & 0xFF;
+        int green = (color >> 8) & 0xFF;
+        int blue = color & 0xFF;
+        
+        // ✅ Transparence stricte - ne garder que les montants
+        int is_transparent = 0;
+        
+        if (red < 20 && green < 20 && blue < 20) // Noir
+            is_transparent = 1;
+        if (red > 240 && green > 240 && blue > 240) // Blanc
+            is_transparent = 1;
+        if (abs(red - 255) <= 5 && green <= 5 && blue <= 5) // Rouge pur
+            is_transparent = 1;
+        
+        // ✅ Dessiner seulement les pixels opaques (montants)
+        if (!is_transparent)
+        {
+            char *dst = game->screen.addr + y * game->screen.line_length + 
+                       column_x * (game->screen.bits_per_pixel / 8);
+            *(unsigned int *)dst = color;
+        }
+    }
+}
+
 void	render_frame(t_game *game)
 {
 	int	col;
