@@ -37,9 +37,11 @@
 # define LEFT 65508
 # define RIGHT 65363
 
-# define RAYGUN 0
+# define RAYGUN 2
 # define PORTALGUN 1
-# define MAX_WEAPONS 2
+# define HANDS 0
+# define HEALGUN 3
+# define MAX_WEAPONS 4
 
 # define TILE_SIZE 64
 # define DISPLAY_WIDTH 1920
@@ -136,6 +138,17 @@ typedef struct s_img
 	int					height;
 }						t_img;
 
+typedef struct s_weapon_pickup
+{
+    double x;
+    double y;
+    int weapon_type; // RAYGUN ou PORTALGUN our HEAL GUN
+    int active;
+    t_img sprite;
+    double distance_to_player;
+} t_weapon_pickup;
+
+
 enum					e_enemy_state
 {
 	IDLE,
@@ -202,6 +215,7 @@ typedef struct s_player
 	double				plane_x;
 	double				plane_y;
 	t_weapon_state		weapon;
+	bool				has_weapon[MAX_WEAPONS];
 }						t_player;
 
 typedef struct s_intersect
@@ -274,6 +288,8 @@ typedef struct s_game
 	int					pitch;
 	t_minimap			minimap;
 	t_health_bar		health_bar;
+	t_weapon_pickup		*weapon_pickup;
+	int					num_weapon_pickup;
 }						t_game;
 
 typedef struct s_render
@@ -564,4 +580,16 @@ char					*get_next_line(int fd);
 // gnl/get_next_line_utils.c
 size_t					ft_strlen(const char *s);
 
+// ========== WEAPON PICKUP FUNCTIONS ==========
+// render/render_weapon_pickups.c
+void render_weapon_pickup(t_game *game, t_weapon_pickup *weapon);
+void calculate_weapon_transform(t_game *game, t_weapon_pickup *weapon, t_render *render);
+void calculate_weapon_screen_pos(t_game *game, t_render *render);
+void draw_weapon_pickup_sprite(t_game *game, t_img *sprite, t_point pos, int size);
+
+// core/weapon_loader.c
+int load_weapon_pickup_sprite(t_game *game, t_weapon_pickup *pickup, char *path);
+int count_weapons_in_map(t_game *game);
+int set_weapon_positions(t_game *game);
+int load_weapon_pickup_sprites(t_game *game);
 #endif

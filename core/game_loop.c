@@ -71,6 +71,18 @@ static void	weapon_animation(t_game *game, int *anim_frames)
 		game->player.fire_cooldown--;
 }
 
+void render_next_frame_weapons(t_game *game)
+{
+    int i = 0;
+    
+    while (i < game->num_weapon_pickup)
+    {
+        if (game->weapon_pickup[i].active)
+            render_weapon_pickup(game, &game->weapon_pickup[i]);
+        i++;
+    }
+}
+
 int	render_next_frame(t_game *game)
 {
 	static int	anim_frames;
@@ -81,6 +93,7 @@ int	render_next_frame(t_game *game)
 	weapon_animation(game, &anim_frames);
 	render_scene(game);
 	render_next_frame_enemies(game);
+	render_next_frame_weapons(game);
 	draw_crosshair(game);
 	mlx_put_image_to_window(game->mlx, game->win, game->screen.ptr, 0, 0);
 	render_ui(game);

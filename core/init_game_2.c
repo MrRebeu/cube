@@ -26,13 +26,17 @@ void	init_player(t_player *player)
 	player->left_rotate = false;
 	player->right_rotate = false;
 	player->turn_back = false;
-	player->current_weapon = PORTALGUN;
+	player->current_weapon = HANDS;
 	player->health = 100;
 	player->weapon.current_state = WEAPON_NEUTRE;
 	player->weapon.frame = 0;
 	player->weapon.frame_delay = 0;
 	player->weapon.is_firing = 0;
 	player->fire_cooldown = 0;
+	player->has_weapon[HANDS] = true;
+    player->has_weapon[RAYGUN] = false;
+    player->has_weapon[PORTALGUN] = false;
+	player->has_weapon[HEALGUN] = false;
 }
 
 void	init_rays(t_game *game)

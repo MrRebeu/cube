@@ -8,6 +8,8 @@
 
 void update_weapon_animation(t_game *game)
 {
+    if (game->current_weapon == HANDS)
+        return;
     if (game->player.weapon.is_firing)
     {
         game->player.weapon.frame_delay--;

@@ -58,22 +58,26 @@ void	init_ui_components(t_game *game)
 	init_health_bar(game);
 }
 
-int	init_game(t_game *game, char *map_file)
+int init_game(t_game *game, char *map_file)
 {
-	init_player(&game->player);
-	game->player.game = game;
-	if (!init_mlx_window(game))
-		return (0);
-	if (!init_map_and_player(game, map_file))
-		return (0);
-	game->current_weapon = PORTALGUN;
-	if (!load_all_textures(game))
-		return (0);
-	if (!load_all_weapons(game))
-		return (0);
-	if (!init_all_enemies(game))
-		return (0);
-	init_portals(game);
-	init_ui_components(game);
-	return (1);
+    init_player(&game->player);
+    game->player.game = game;
+    if (!init_mlx_window(game))
+        return (0);
+    if (!init_map_and_player(game, map_file))
+        return (0);
+    game->current_weapon = HANDS;
+    if (!load_all_textures(game))
+        return (0);
+    if (!load_all_weapons(game))
+        return (0);
+    if (!load_weapon_pickup_sprites(game)) // ← NOUVEAU
+        return (0);
+    if (!set_weapon_positions(game)) // ← NOUVEAU
+        return (0);
+    if (!init_all_enemies(game))
+        return (0);
+    init_portals(game);
+    init_ui_components(game);
+    return (1);
 }

@@ -12,6 +12,63 @@
 
 #include "../cube3d.h"
 
+void check_weapon_pickup(t_player *player)
+{
+	int player_map_x;
+	int player_map_y;
+	char cell_type;
+
+	if (!player->game)
+		return;
+	player_map_x = (int)(player->x / TILE_SIZE);
+	player_map_y = (int)(player->y / TILE_SIZE);
+	if (player_map_x >= 0 && player_map_x < player->game->map.width &&
+        player_map_y >= 0 && player_map_y < player->game->map.height)
+	{
+		cell_type = player->game->map.matrix[player_map_y][player_map_x];
+		if (cell_type == 'R')
+		{
+			if (!player->has_weapon[RAYGUN])
+			{
+				player->has_weapon[RAYGUN] = true;
+				player->game->map.matrix[player_map_y][player_map_x] = '0';
+				player->current_weapon = RAYGUN;
+				player->game->current_weapon = RAYGUN;
+			}
+		}
+		if (cell_type == 'G')
+		{
+			if (!player->has_weapon[PORTALGUN])
+			{
+				player->has_weapon[PORTALGUN] = true;
+				player->game->map.matrix[player_map_y][player_map_x] = '0';
+				player->current_weapon = PORTALGUN;
+				player->game->current_weapon = PORTALGUN;
+			}
+		}
+		if (cell_type == 'R')
+		{
+			if (!player->has_weapon[RAYGUN])
+			{
+				player->has_weapon[RAYGUN] = true;
+				player->game->map.matrix[player_map_y][player_map_x] = '0';
+				player->current_weapon = RAYGUN;
+				player->game->current_weapon = RAYGUN;
+			}
+		}
+		if (cell_type == 'H')
+		{
+			if (!player->has_weapon[HEALGUN])
+			{
+				player->has_weapon[HEALGUN] = true;
+				player->game->map.matrix[player_map_y][player_map_x] = '0';
+				player->current_weapon = HEALGUN;
+				player->game->current_weapon = HEALGUN;
+			}
+		}
+	}
+}
+
 int	key_release(int keycode, t_player *player)
 {
 	if (keycode == W)
@@ -57,26 +114,44 @@ int	key_press(int keycode, t_player *player)
 		player->left = true;
 	if (keycode == RIGHT)
 		player->right = true;
-	if (keycode == 49)
-	{
-		player->current_weapon = PORTALGUN;
-		if (player->game)
-			player->game->current_weapon = PORTALGUN;
-	}
-	if (keycode == 50)
-	{
-		player->current_weapon = RAYGUN;
-		if (player->game)
-			player->game->current_weapon = RAYGUN;
-	}
-	// if (keycode == 101)
-	// {
-	// 	try_open_door(??);
-	// }
-	// if (player->current_weapon >= MAX_WEAPONS)
-	//     player->current_weapon = 0;
-	return (0);
+	if (keycode == 48) // Touche 0 pour les mains
+    {
+        if (player->has_weapon[HANDS])
+        {
+            player->current_weapon = HANDS;
+            if (player->game)
+                player->game->current_weapon = HANDS;
+        }
+    }
+    if (keycode == 49) // Touche 1 pour raygun
+    {
+        if (player->has_weapon[RAYGUN])
+        {
+            player->current_weapon = RAYGUN;
+            if (player->game)
+                player->game->current_weapon = RAYGUN;
+        }
+        else
+        {
+            printf("❌ Raygun non collecté !\n");
+        }
+    }
+    if (keycode == 50) // Touche 2 pour portal gun
+    {
+        if (player->has_weapon[PORTALGUN])
+        {
+            player->current_weapon = PORTALGUN;
+            if (player->game)
+                player->game->current_weapon = PORTALGUN;
+        }
+        else
+        {
+            printf("❌ Portal Gun non collecté !\n");
+        }
+    }
+    return (0);
 }
+
 int	mouse_move(int x, int y, t_game *game)
 {
 	int		center_x;
@@ -187,5 +262,6 @@ void	move_player(t_player *player)
 			player->y = new_y;
 	}
 	check_portal_teleportation(player->game);
+	check_weapon_pickup(player);
 }
 

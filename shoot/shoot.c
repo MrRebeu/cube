@@ -167,14 +167,71 @@ void calculate_shoot(t_game *game)
     }
 }
 
+// int mouse_button(int button, int x, int y, t_game *game)
+// {
+//     (void)x;
+//     (void)y;
+    
+//     if (game->map.north.ptr != NULL)
+//         return 0;
+        
+//     if (button == 1) // Clic gauche pour tirer
+//     {
+//         if (game->current_weapon == HANDS)
+//             return 0;
+            
+//         // Vérifier qu'on a bien l'arme
+//         if (!game->player.has_weapon[game->current_weapon])
+//             return 0;
+            
+//         if (game->current_weapon == RAYGUN)
+//         {
+//             if (!game->player.weapon.is_firing)
+//             {
+//                 game->player.weapon.is_firing = 1;
+//                 game->player.weapon.current_state = WEAPON_PREFIRE;
+//                 game->player.weapon.frame = 1;
+//                 game->player.weapon.frame_delay = 10;
+//                 calculate_shoot(game);
+//             }
+//         }
+//         else if (game->current_weapon == PORTALGUN)
+//         {
+//             if (game->portal_count < 2)
+//             {
+//                 calculate_shoot(game);
+//             }
+//         }
+//     }
+//     else if (button == 4 || button == 5) // Scroll souris
+//     {
+//         if (button == 4) // Scroll up
+//             switch_to_next_weapon(&game->player);
+//         else // Scroll down
+//             switch_to_prev_weapon(&game->player);
+//     }
+//     else if (button == 3 && game->current_weapon == PORTALGUN)
+//     {
+//         if (game->player.has_weapon[PORTALGUN])
+//             remove_all_portals(game);
+//     }
+
+//     return (0);
+// }
+
 int mouse_button(int button, int x, int y, t_game *game)
 {
     (void)x;
     (void)y;
+    
     if (game->map.north.ptr != NULL)
         return 0;
-    if (button == 1)
+        
+    if (button == 1) // Clic gauche pour tirer
     {
+        if (game->current_weapon == HANDS)
+            return 0;
+            
         if (game->current_weapon == RAYGUN)
         {
             if (!game->player.weapon.is_firing)
@@ -194,12 +251,18 @@ int mouse_button(int button, int x, int y, t_game *game)
             }
         }
     }
-    else if (button == 4 || button == 5)
+    else if (button == 4 || button == 5) // Scroll souris
     {
-        if (game->current_weapon == RAYGUN)
-            game->current_weapon = PORTALGUN;
-        else if (game->current_weapon == PORTALGUN)
-            game->current_weapon = RAYGUN;
+        // Version simple : cycle entre toutes les armes
+        if (button == 4) // Scroll up
+        {
+            game->current_weapon = (game->current_weapon + 1) % MAX_WEAPONS;
+        }
+        else // Scroll down
+        {
+            game->current_weapon = (game->current_weapon - 1 + MAX_WEAPONS) % MAX_WEAPONS;
+        }
+        game->player.current_weapon = game->current_weapon;
     }
     else if (button == 3 && game->current_weapon == PORTALGUN)
     {

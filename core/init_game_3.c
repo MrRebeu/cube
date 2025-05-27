@@ -21,7 +21,7 @@ int	init_game_with_4_textures(t_game *game, char *map_file,
 		return (0);
 	if (!init_map_and_player(game, map_file))
 		return (0);
-	game->current_weapon = RAYGUN;
+	game->current_weapon = HANDS;
 	if (!load_special_textures(game))
 		return (0);
 	if (!load_all_weapons(game))
