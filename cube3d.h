@@ -614,7 +614,6 @@ int	is_not_wall_for_movement(t_map *map, double x, double y);
 int count_open_doors_in_map(t_game *game);
 int load_open_door_sprites(t_game *game);
 int set_open_door_positions(t_game *game);
-void render_open_door(t_game *game, t_open_door *door);
 void draw_open_door_sprite(t_game *game, t_img *sprite, t_point pos, int size);
 void render_all_open_doors(t_game *game);
 void render_door_columns(t_game *game, t_open_door *door, int col_start, int col_end, 
@@ -639,5 +638,6 @@ double check_open_door_on_ray(t_game *game, double radiant_angle);
 void render_open_door_ultra_thin(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 void render_simple_door_line(t_game *game, int column_x, t_render *renderer);
 t_open_door *find_door_at_position(t_game *game, int map_x, int map_y);
+void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 
 #endif

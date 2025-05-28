@@ -245,56 +245,7 @@ void render_wall_shooted(t_game *game, int column_x, t_render *renderer, t_ray *
     }
 }
 
-void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
-{
-    int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
-    double H = renderer->wall_height;
-    int texture_y;
 
-    // ✅ RÉPÉTER LE MOTIF CENTRAL SUR TOUTE LA LARGEUR
-    double hit_pos_in_cell;
-    
-    if (ray->hit_vertical) {
-        hit_pos_in_cell = fmod(ray->wall_hit_y, TILE_SIZE);
-    } else {
-        hit_pos_in_cell = fmod(ray->wall_hit_x, TILE_SIZE);
-    }
-    
-    // Utiliser le motif central (32±16) répété
-    int center = TILE_SIZE / 2;
-    int pattern_width = 200; // Largeur du motif à répéter
-    
-    // Mapper toute la cellule vers le motif central
-    int pattern_offset = ((int)hit_pos_in_cell % pattern_width) - (pattern_width / 2);
-    renderer->tex_x = center + pattern_offset;
-    
-    // Clamp
-    if (renderer->tex_x < 0) renderer->tex_x = 0;
-    if (renderer->tex_x >= TILE_SIZE) renderer->tex_x = TILE_SIZE - 1;
-
-    renderer->y = renderer->draw_start;
-    while (renderer->y <= renderer->draw_end)
-    {
-        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
-        {
-            float rel = ((renderer->y - CY) / H) + 0.5f;
-            texture_y = (int)(rel * TILE_SIZE);
-            if (texture_y < 0) texture_y = 0;
-            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
-
-            renderer->tex_addr = game->map.door_texture.addr
-                + (texture_y * game->map.door_texture.line_length
-                + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
-            renderer->color = *(unsigned int *)renderer->tex_addr;
-
-            renderer->screen_pixel = game->screen.addr
-                + (renderer->y * game->screen.line_length
-                + column_x * (game->screen.bits_per_pixel / 8));
-            *(unsigned int *)renderer->screen_pixel = renderer->color;
-        }
-        renderer->y++;
-    }
-}
 
 void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {

@@ -230,35 +230,11 @@ int is_not_wall(t_map *map, double x, double y)
     
     if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
         return (0);
+    
     char cell = map->matrix[map_y][map_x];
-        if (cell == 'D') 
-	{
-		int pixel_x = (int)x % TILE_SIZE;
-		int pixel_y = (int)y % TILE_SIZE;
-		int door_thickness = 3;
     
-		// ✅ DEBUG : Afficher les valeurs
-		printf("DEBUG: x=%.1f, y=%.1f, pixel_x=%d, pixel_y=%d\n", 
-			x, y, pixel_x, pixel_y);
-		
-		int near_left = (pixel_x <= door_thickness);
-		int near_right = (pixel_x >= (TILE_SIZE - door_thickness));
-		int near_top = (pixel_y <= door_thickness);
-		int near_bottom = (pixel_y >= (TILE_SIZE - door_thickness));
-    
-		if (near_left || near_right || near_top || near_bottom) 
-		{
-			printf("DEBUG: PORTE DETECTEE sur bord\n");
-			return (0);
-		} 
-		else 
-		{
-			printf("DEBUG: Centre transparent\n");
-			return (1);
-		}
-	}    
-    // Reste du code normal...
-    if (cell == '1' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M')
+    // ✅ Pour le raycasting : 'D' est un mur solide (la porte est fermée)
+    if (cell == '1' || cell == 'O' || cell == 'D' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M')
         return (0);
     else
         return (1);

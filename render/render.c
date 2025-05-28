@@ -42,11 +42,16 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_wall_shooted(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'd')
         render_door_shooted(game, column_x, &renderer, ray);
-    else if (ray->hit_type == 'O') // ✅ NOUVEAU
-		render_open_door_ultra_thin(game, column_x, &renderer, ray);
+     else if (ray->hit_type == 'O')
+    {
+        printf("✅ RENDU PORTE OUVERTE détecté !\n"); // ✅ DEBUG
+        render_open_door(game, column_x, &renderer, ray);
+    }
     else
+    {
+        printf("DEBUG: Rendu mur normal pour hit_type='%c'\n", ray->hit_type); // ✅ DEBUG
         render_wall(game, column_x, &renderer, ray);
-        
+    }   
     render_floor_and_ceiling(game, column_x, &renderer);
 }
 

@@ -242,78 +242,59 @@ void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int s
     }
 }
 
-void render_open_door(t_game *game, t_open_door *door)
+void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    double dx, dy, distance;
-    int door_screen_start, door_screen_end;
-    int door_height, door_top, door_bottom;
-    double distance_to_projection;
-    
-    if (!door->active)
-        return;
-    
-    // ✅ Distance du joueur à la porte
-    dx = door->x - game->player.x;
-    dy = door->y - game->player.y;
-    distance = sqrt(dx * dx + dy * dy);
-    
-    if (distance < 10.0)
-        return;
-    
-    // ✅ Calculer les positions FIXES des extrémités de la porte
-    double door_start_x, door_start_y, door_end_x, door_end_y;
-    
-    if (door->orientation == 0) // Horizontale
+    int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H = renderer->wall_height;
+    int texture_y;
+
+    // ✅ Calcul tex_x identique aux portes fermées
+    if (ray->hit_vertical)
     {
-        door_start_x = door->start_x;
-        door_start_y = door->y;
-        door_end_x = door->start_x + door->width;
-        door_end_y = door->y;
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+        if (cos(ray->radiant_angle) > 0)
+            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
-    else // Verticale
+    else
     {
-        door_start_x = door->x;
-        door_start_y = door->start_y;
-        door_end_x = door->x;
-        door_end_y = door->start_y + door->width;
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+        if (sin(ray->radiant_angle) < 0)
+            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
-    
-    // ✅ Convertir les positions 3D fixes en colonnes d'écran
-    door_screen_start = world_to_screen_column(game, door_start_x, door_start_y);
-    door_screen_end = world_to_screen_column(game, door_end_x, door_end_y);
-    
-    // ✅ S'assurer que start < end
-    if (door_screen_start > door_screen_end)
+
+    renderer->y = renderer->draw_start;
+    while (renderer->y <= renderer->draw_end)
     {
-        int temp = door_screen_start;
-        door_screen_start = door_screen_end;
-        door_screen_end = temp;
+        if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
+        {
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0) texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
+
+            // ✅ Utiliser la texture de porte ouverte
+            renderer->tex_addr = game->map.open_door_texture.addr
+                + (texture_y * game->map.open_door_texture.line_length
+                + renderer->tex_x * (game->map.open_door_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
+
+            // ✅ TRANSPARENCE : Skip les pixels rouges (ouverture)
+            int red = (renderer->color >> 16) & 0xFF;
+            int green = (renderer->color >> 8) & 0xFF;
+            int blue = renderer->color & 0xFF;
+            
+            // Si pas rouge pur, dessiner (= montants de porte)
+            if (!(abs(red - 255) <= 5 && green <= 5 && blue <= 5))
+            {
+                renderer->screen_pixel = game->screen.addr
+                    + (renderer->y * game->screen.line_length
+                    + column_x * (game->screen.bits_per_pixel / 8));
+                *(unsigned int *)renderer->screen_pixel = renderer->color;
+            }
+            // Sinon, ne rien dessiner (transparence = on voit à travers)
+        }
+        renderer->y++;
     }
-    
-    // ✅ Vérifier si visible à l'écran
-    if (door_screen_end < 0 || door_screen_start >= DISPLAY_WIDTH)
-        return;
-    
-    // ✅ Clamp aux limites d'écran
-    if (door_screen_start < 0) door_screen_start = 0;
-    if (door_screen_end >= DISPLAY_WIDTH) door_screen_end = DISPLAY_WIDTH - 1;
-    
-    // ✅ Hauteur basée sur la distance
-    distance_to_projection = (DISPLAY_WIDTH / 2.0) / tan(game->player.fov / 2.0);
-    door_height = (int)((TILE_SIZE * 1.2) / distance * distance_to_projection);
-    
-    door_top = (DISPLAY_HEIGHT / 2) - (door_height / 2) + game->pitch;
-    door_bottom = (DISPLAY_HEIGHT / 2) + (door_height / 2) + game->pitch;
-    
-    // ✅ Vérifier occlusion
-    int mid_column = (door_screen_start + door_screen_end) / 2;
-    if (mid_column >= 0 && mid_column < DISPLAY_WIDTH && 
-        distance >= game->depth_buffer[mid_column])
-        return;
-    
-    // ✅ Rendre avec positions fixes
-    render_door_columns(game, door, door_screen_start, door_screen_end, 
-                       door_top, door_bottom, distance);
 }
 
 int world_to_screen_column(t_game *game, double world_x, double world_y)
@@ -537,39 +518,26 @@ void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 
 void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    // ✅ Vérifier si on doit rendre la porte à cette position
-    double hit_pos;
-    int pixel_in_cell;
-    int door_thickness = 64; // Épaisseur de la porte (ajustable)
-    int cell_center = TILE_SIZE / 8; // Centre de la cellule (32 si TILE_SIZE=64)
-    
-    // Déterminer quelle coordonnée utiliser selon l'orientation de l'intersection
-    if (ray->hit_vertical) {
-        // Intersection verticale → porte horizontale → vérifier position Y
-        hit_pos = ray->wall_hit_y;
-    } else {
-        // Intersection horizontale → porte verticale → vérifier position X
-        hit_pos = ray->wall_hit_x;
-    }
-    
-    pixel_in_cell = (int)hit_pos % TILE_SIZE;
-    
-    // ✅ Ne rendre que si on est au centre de la cellule
-    if (pixel_in_cell < (cell_center - door_thickness/2) || 
-        pixel_in_cell > (cell_center + door_thickness/2)) {
-        return; // Pas de rendu = transparent
-    }
-
-    // ✅ Rendu normal de la porte
+    // ✅ Pour les portes fermées ('D'), rendre sur TOUTE la cellule
     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
     double H = renderer->wall_height;
     int texture_y;
 
+    // ✅ Calcul tex_x normal comme pour un mur
     if (ray->hit_vertical)
+    {
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+        if (cos(ray->radiant_angle) > 0)
+            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+    }
     else
+    {
         renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+        if (sin(ray->radiant_angle) < 0)
+            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+    }
 
+    // ✅ Rendre TOUTE la colonne sans condition
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)
     {
