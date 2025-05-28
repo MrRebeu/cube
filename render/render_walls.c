@@ -537,6 +537,30 @@ void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 
 void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
+    // ✅ Vérifier si on doit rendre la porte à cette position
+    double hit_pos;
+    int pixel_in_cell;
+    int door_thickness = 64; // Épaisseur de la porte (ajustable)
+    int cell_center = TILE_SIZE / 8; // Centre de la cellule (32 si TILE_SIZE=64)
+    
+    // Déterminer quelle coordonnée utiliser selon l'orientation de l'intersection
+    if (ray->hit_vertical) {
+        // Intersection verticale → porte horizontale → vérifier position Y
+        hit_pos = ray->wall_hit_y;
+    } else {
+        // Intersection horizontale → porte verticale → vérifier position X
+        hit_pos = ray->wall_hit_x;
+    }
+    
+    pixel_in_cell = (int)hit_pos % TILE_SIZE;
+    
+    // ✅ Ne rendre que si on est au centre de la cellule
+    if (pixel_in_cell < (cell_center - door_thickness/2) || 
+        pixel_in_cell > (cell_center + door_thickness/2)) {
+        return; // Pas de rendu = transparent
+    }
+
+    // ✅ Rendu normal de la porte
     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
     double H = renderer->wall_height;
     int texture_y;

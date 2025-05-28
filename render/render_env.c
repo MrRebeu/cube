@@ -247,35 +247,30 @@ void render_wall_shooted(t_game *game, int column_x, t_render *renderer, t_ray *
 
 void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    // ✅ NOUVEAU : Vérifier la position dans la cellule
-    double hit_pos;
-    int pixel_in_cell;
-    int door_thickness = 2; // Épaisseur de la porte en pixels
-    int cell_center = TILE_SIZE / 2; // Centre de la cellule (32 pour TILE_SIZE=64)
-    
-    // Déterminer la position dans la cellule selon l'orientation
-    if (ray->hit_vertical)
-        hit_pos = ray->wall_hit_y;
-    else
-        hit_pos = ray->wall_hit_x;
-    
-    pixel_in_cell = (int)hit_pos % TILE_SIZE;
-    
-    // ✅ Ne rendre que si on est au centre de la cellule (porte fine)
-    if (pixel_in_cell < (cell_center - door_thickness/2) || 
-        pixel_in_cell > (cell_center + door_thickness/2)) {
-        return; // Pas de rendu = on voit à travers
-    }
-
-    // ✅ Reste de ton code normal (inchangé)
     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
     double H = renderer->wall_height;
     int texture_y;
 
-    if (ray->hit_vertical)
-        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
-    else
-        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+    // ✅ RÉPÉTER LE MOTIF CENTRAL SUR TOUTE LA LARGEUR
+    double hit_pos_in_cell;
+    
+    if (ray->hit_vertical) {
+        hit_pos_in_cell = fmod(ray->wall_hit_y, TILE_SIZE);
+    } else {
+        hit_pos_in_cell = fmod(ray->wall_hit_x, TILE_SIZE);
+    }
+    
+    // Utiliser le motif central (32±16) répété
+    int center = TILE_SIZE / 2;
+    int pattern_width = 200; // Largeur du motif à répéter
+    
+    // Mapper toute la cellule vers le motif central
+    int pattern_offset = ((int)hit_pos_in_cell % pattern_width) - (pattern_width / 2);
+    renderer->tex_x = center + pattern_offset;
+    
+    // Clamp
+    if (renderer->tex_x < 0) renderer->tex_x = 0;
+    if (renderer->tex_x >= TILE_SIZE) renderer->tex_x = TILE_SIZE - 1;
 
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)

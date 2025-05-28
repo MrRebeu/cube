@@ -230,28 +230,33 @@ int is_not_wall(t_map *map, double x, double y)
     
     if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
         return (0);
-    
     char cell = map->matrix[map_y][map_x];
+        if (cell == 'D') 
+	{
+		int pixel_x = (int)x % TILE_SIZE;
+		int pixel_y = (int)y % TILE_SIZE;
+		int door_thickness = 3;
     
-    // ✅ NOUVEAU : Traitement spécial pour les portes 'D'
-    if (cell == 'D') {
-    int pixel_x = (int)x % TILE_SIZE;
-    int pixel_y = (int)y % TILE_SIZE;
-    int door_thickness = 3;
+		// ✅ DEBUG : Afficher les valeurs
+		printf("DEBUG: x=%.1f, y=%.1f, pixel_x=%d, pixel_y=%d\n", 
+			x, y, pixel_x, pixel_y);
+		
+		int near_left = (pixel_x <= door_thickness);
+		int near_right = (pixel_x >= (TILE_SIZE - door_thickness));
+		int near_top = (pixel_y <= door_thickness);
+		int near_bottom = (pixel_y >= (TILE_SIZE - door_thickness));
     
-    // Vérifier si on est proche d'un bord
-    int near_left = (pixel_x <= door_thickness);
-    int near_right = (pixel_x >= (TILE_SIZE - door_thickness));
-    int near_top = (pixel_y <= door_thickness);
-    int near_bottom = (pixel_y >= (TILE_SIZE - door_thickness));
-    
-    if (near_left || near_right || near_top || near_bottom) {
-        return (0); // Porte sur le bord
-    } else {
-        return (1); // Centre de cellule = transparent
-    }
-}
-    
+		if (near_left || near_right || near_top || near_bottom) 
+		{
+			printf("DEBUG: PORTE DETECTEE sur bord\n");
+			return (0);
+		} 
+		else 
+		{
+			printf("DEBUG: Centre transparent\n");
+			return (1);
+		}
+	}    
     // Reste du code normal...
     if (cell == '1' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M')
         return (0);
@@ -410,60 +415,68 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
     v = v_intersection(game->player.x, game->player.y, radiant_angle);
     h = h_intersection(game->player.x, game->player.y, radiant_angle);
 
-    // ✅ FONCTION CORRIGÉE pour l'orientation
-    auto int is_door_hit(double hit_x, double hit_y, char hit_type, int is_vertical_intersection) {
+    // ✅ FONCTION POUR AJUSTER LA POSITION DES MURS TYPE 'D'
+    auto void adjust_door_position(double *hit_x, double *hit_y, char hit_type, int is_vertical) {
         if (hit_type != 'D')
-            return 1; // Pas une porte, traitement normal
+            return; // Pas un mur type D, pas d'ajustement
         
-        int center = TILE_SIZE / 2;  // 32
-        int door_thickness = 8;      // Épaisseur
+        double recess = TILE_SIZE * 0.5; // Recul de 30% vers le centre
         
-        if (is_vertical_intersection) {
-            // Intersection verticale → porte horizontale → vérifier Y
-            int pixel_y = (int)hit_y % TILE_SIZE;
-            return (pixel_y >= (center - door_thickness/2) && 
-                    pixel_y <= (center + door_thickness/2));
+        if (is_vertical) {
+            // Intersection verticale - ajuster X vers le centre
+            int cell_x = (int)(*hit_x / TILE_SIZE);
+            double cell_center_x = (cell_x * TILE_SIZE) + (TILE_SIZE / 2);
+            
+            if (*hit_x < cell_center_x) {
+                *hit_x += recess; // Reculer vers la droite
+            } else {
+                *hit_x -= recess; // Reculer vers la gauche
+            }
         } else {
-            // Intersection horizontale → porte verticale → vérifier X  
-            int pixel_x = (int)hit_x % TILE_SIZE;
-            return (pixel_x >= (center - door_thickness/2) && 
-                    pixel_x <= (center + door_thickness/2));
+            // Intersection horizontale - ajuster Y vers le centre
+            int cell_y = (int)(*hit_y / TILE_SIZE);
+            double cell_center_y = (cell_y * TILE_SIZE) + (TILE_SIZE / 2);
+            
+            if (*hit_y < cell_center_y) {
+                *hit_y += recess; // Reculer vers le bas
+            } else {
+                *hit_y -= recess; // Reculer vers le haut
+            }
         }
     }
 
-    // Raycasting vertical avec vérification porte
+    // Raycasting vertical
     iter = 0;
     while (iter < max_iterations)
     {
-        if (!is_not_wall(&game->map, v.x, v.y)) {
-            char hit_type = get_hit_type(&game->map, v.x, v.y);
-            if (is_door_hit(v.x, v.y, hit_type, 1)) // 1 = vertical
-                break; // Vraie collision
-        }
+        if (!is_not_wall(&game->map, v.x, v.y))
+            break;
         v.x += v.step_x;
         v.y += v.step_y;
         iter++;
     }
 
-    // Raycasting horizontal avec vérification porte
+    // Raycasting horizontal
     iter = 0;
     while (iter < max_iterations)
     {
-        if (!is_not_wall(&game->map, h.x, h.y)) {
-            char hit_type = get_hit_type(&game->map, h.x, h.y);
-            if (is_door_hit(h.x, h.y, hit_type, 0)) // 0 = horizontal
-                break; // Vraie collision
-        }
+        if (!is_not_wall(&game->map, h.x, h.y))
+            break;
         h.x += h.step_x;
         h.y += h.step_y;
         iter++;
     }
 
-    // Reste du code inchangé...
-    dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));
-    dist_h = sqrt(pow(h.x - game->player.x, 2) + pow(h.y - game->player.y, 2));
+    // ✅ AJUSTER LES POSITIONS POUR LES MURS TYPE 'D'
     hit_type_v = get_hit_type(&game->map, v.x, v.y);
     hit_type_h = get_hit_type(&game->map, h.x, h.y);
+    
+    adjust_door_position(&v.x, &v.y, hit_type_v, 1); // 1 = vertical
+    adjust_door_position(&h.x, &h.y, hit_type_h, 0); // 0 = horizontal
+
+    // Recalculer les distances après ajustement
+    dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));
+    dist_h = sqrt(pow(h.x - game->player.x, 2) + pow(h.y - game->player.y, 2));
 
     if (fabs(dist_v - dist_h) < epsilon)
     {
