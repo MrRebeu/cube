@@ -393,7 +393,7 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
 
     // ✅ FONCTION POUR AJUSTER LA POSITION DES MURS TYPE 'D'
     auto void adjust_door_position(double *hit_x, double *hit_y, char hit_type, int is_vertical) {
-        if (hit_type != 'D')
+        if (hit_type != 'D' && hit_type != 'O')
             return; // Pas un mur type D, pas d'ajustement
         
         double recess = TILE_SIZE * 0.5; // Recul de 30% vers le centre

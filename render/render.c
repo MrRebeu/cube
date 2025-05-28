@@ -12,48 +12,48 @@
 
 #include "../cube3d.h"
 
-void render_column(t_game *game, int column_x, t_ray *ray)
-{
-    t_render renderer;
+// void render_column(t_game *game, int column_x, t_ray *ray)
+// {
+//     t_render renderer;
 
-    renderer.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle, ray->player_angle);
-    renderer.wall_height = calc_wall_height(renderer.corrected_dist);
+//     renderer.corrected_dist = no_fish_eye(ray->distance, ray->radiant_angle, ray->player_angle);
+//     renderer.wall_height = calc_wall_height(renderer.corrected_dist);
     
-    renderer.draw_start = (DISPLAY_HEIGHT / 2) - (renderer.wall_height / 2) + game->pitch;
-    renderer.draw_end = (DISPLAY_HEIGHT / 2) + (renderer.wall_height / 2) + game->pitch;
+//     renderer.draw_start = (DISPLAY_HEIGHT / 2) - (renderer.wall_height / 2) + game->pitch;
+//     renderer.draw_end = (DISPLAY_HEIGHT / 2) + (renderer.wall_height / 2) + game->pitch;
     
-    if (renderer.draw_start < 0) renderer.draw_start = 0;
-    if (renderer.draw_end >= DISPLAY_HEIGHT) renderer.draw_end = DISPLAY_HEIGHT - 1;
+//     if (renderer.draw_start < 0) renderer.draw_start = 0;
+//     if (renderer.draw_end >= DISPLAY_HEIGHT) renderer.draw_end = DISPLAY_HEIGHT - 1;
     
-    // ✅ NOUVEAU : Vérifier les portes AVANT de rendre les murs
-    if (check_and_render_door_on_column(game, column_x, ray))
-    {
-        // Si une porte a été rendue, ne pas rendre le mur derrière
-        render_floor_and_ceiling(game, column_x, &renderer);
-        return;
-    }
+//     // ✅ NOUVEAU : Vérifier les portes AVANT de rendre les murs
+//     if (check_and_render_door_on_column(game, column_x, ray))
+//     {
+//         // Si une porte a été rendue, ne pas rendre le mur derrière
+//         render_floor_and_ceiling(game, column_x, &renderer);
+//         return;
+//     }
     
-    // Rendu normal des murs
-    if (ray->hit_type == 'P')
-        render_wall_portal(game, column_x, &renderer, ray);
-    else if (ray->hit_type == 'D')
-        render_door(game, column_x, &renderer, ray);
-    else if (ray->hit_type == 'i')
-        render_wall_shooted(game, column_x, &renderer, ray);
-    else if (ray->hit_type == 'd')
-        render_door_shooted(game, column_x, &renderer, ray);
-     else if (ray->hit_type == 'O')
-    {
-        printf("✅ RENDU PORTE OUVERTE détecté !\n"); // ✅ DEBUG
-        render_open_door(game, column_x, &renderer, ray);
-    }
-    else
-    {
-        printf("DEBUG: Rendu mur normal pour hit_type='%c'\n", ray->hit_type); // ✅ DEBUG
-        render_wall(game, column_x, &renderer, ray);
-    }   
-    render_floor_and_ceiling(game, column_x, &renderer);
-}
+//     // Rendu normal des murs
+//     if (ray->hit_type == 'P')
+//         render_wall_portal(game, column_x, &renderer, ray);
+//     else if (ray->hit_type == 'D')
+//         render_door(game, column_x, &renderer, ray);
+//     else if (ray->hit_type == 'i')
+//         render_wall_shooted(game, column_x, &renderer, ray);
+//     else if (ray->hit_type == 'd')
+//         render_door_shooted(game, column_x, &renderer, ray);
+//      else if (ray->hit_type == 'O')
+//     {
+//         printf("✅ RENDU PORTE OUVERTE détecté !\n"); // ✅ DEBUG
+//         render_open_door(game, column_x, &renderer, ray);
+//     }
+//     else
+//     {
+//         printf("DEBUG: Rendu mur normal pour hit_type='%c'\n", ray->hit_type); // ✅ DEBUG
+//         render_wall(game, column_x, &renderer, ray);
+//     }   
+//     render_floor_and_ceiling(game, column_x, &renderer);
+// }
 
 void render_door_column_fixed(t_game *game, t_open_door *door, int column_x, double distance)
 {

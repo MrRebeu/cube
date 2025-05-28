@@ -29,6 +29,8 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_wall_shooted(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'd')
         render_door_shooted(game, column_x, &renderer, ray);
+    else if (ray->hit_type == 'O')
+        render_open_door(game, column_x, &renderer, ray);
     else
         render_wall(game, column_x, &renderer, ray);
         
@@ -44,6 +46,7 @@ void render_scene(t_game *game)
         render_column(game, col, &game->rays[col]);
         col++;
     }
+    //render_all_open_doors(game);
 }
 
 void render_frame(t_game *game)
