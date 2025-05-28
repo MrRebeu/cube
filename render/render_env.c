@@ -247,11 +247,31 @@ void render_wall_shooted(t_game *game, int column_x, t_render *renderer, t_ray *
 
 void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    int   CY = (DISPLAY_HEIGHT / 2) + game->pitch;
-    double H  = renderer->wall_height;
-    int   texture_y;
+    // ✅ NOUVEAU : Vérifier la position dans la cellule
+    double hit_pos;
+    int pixel_in_cell;
+    int door_thickness = 2; // Épaisseur de la porte en pixels
+    int cell_center = TILE_SIZE / 2; // Centre de la cellule (32 pour TILE_SIZE=64)
+    
+    // Déterminer la position dans la cellule selon l'orientation
+    if (ray->hit_vertical)
+        hit_pos = ray->wall_hit_y;
+    else
+        hit_pos = ray->wall_hit_x;
+    
+    pixel_in_cell = (int)hit_pos % TILE_SIZE;
+    
+    // ✅ Ne rendre que si on est au centre de la cellule (porte fine)
+    if (pixel_in_cell < (cell_center - door_thickness/2) || 
+        pixel_in_cell > (cell_center + door_thickness/2)) {
+        return; // Pas de rendu = on voit à travers
+    }
 
-    /* Calcolo tex_x in base al punto d’impatto */
+    // ✅ Reste de ton code normal (inchangé)
+    int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H = renderer->wall_height;
+    int texture_y;
+
     if (ray->hit_vertical)
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
     else
@@ -262,22 +282,19 @@ void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
     {
         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
-            // normalizza y rispetto al centro + pitch e all’altezza H
             float rel = ((renderer->y - CY) / H) + 0.5f;
             texture_y = (int)(rel * TILE_SIZE);
-            if (texture_y < 0)           texture_y = 0;
+            if (texture_y < 0) texture_y = 0;
             else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
-            /* Preleva il pixel dalla texture della porta */
             renderer->tex_addr = game->map.door_texture.addr
                 + (texture_y * game->map.door_texture.line_length
-                   + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+                + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
             renderer->color = *(unsigned int *)renderer->tex_addr;
 
-            /* Scrive sul buffer video */
             renderer->screen_pixel = game->screen.addr
                 + (renderer->y * game->screen.line_length
-                   + column_x * (game->screen.bits_per_pixel / 8));
+                + column_x * (game->screen.bits_per_pixel / 8));
             *(unsigned int *)renderer->screen_pixel = renderer->color;
         }
         renderer->y++;

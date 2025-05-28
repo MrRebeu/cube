@@ -223,23 +223,40 @@ int	is_not_wall_for_movement(t_map *map, double x, double y)
 	return (1);
 }
 
-int	is_not_wall(t_map *map, double x, double y)
+int is_not_wall(t_map *map, double x, double y)
 {
-	int	map_x;
-	int	map_y;
-
-	map_x = (int)(x / TILE_SIZE);
-	map_y = (int)(y / TILE_SIZE);
-	if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
-		return (0);
-	
-	// ✅ Pour le raycasting : 'O' bloque les rayons (pour avoir un rendu)
-	if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D'
-		|| map->matrix[map_y][map_x] == 'P' || map->matrix[map_y][map_x] == 'i'
-		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M')
-		return (0);
-	else
-		return (1);
+    int map_x = (int)(x / TILE_SIZE);
+    int map_y = (int)(y / TILE_SIZE);
+    
+    if (map_x < 0 || map_x >= map->width || map_y < 0 || map_y >= map->height)
+        return (0);
+    
+    char cell = map->matrix[map_y][map_x];
+    
+    // ✅ NOUVEAU : Traitement spécial pour les portes 'D'
+    if (cell == 'D') {
+    int pixel_x = (int)x % TILE_SIZE;
+    int pixel_y = (int)y % TILE_SIZE;
+    int door_thickness = 3;
+    
+    // Vérifier si on est proche d'un bord
+    int near_left = (pixel_x <= door_thickness);
+    int near_right = (pixel_x >= (TILE_SIZE - door_thickness));
+    int near_top = (pixel_y <= door_thickness);
+    int near_bottom = (pixel_y >= (TILE_SIZE - door_thickness));
+    
+    if (near_left || near_right || near_top || near_bottom) {
+        return (0); // Porte sur le bord
+    } else {
+        return (1); // Centre de cellule = transparent
+    }
+}
+    
+    // Reste du code normal...
+    if (cell == '1' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M')
+        return (0);
+    else
+        return (1);
 }
 
 
@@ -379,74 +396,92 @@ void check_open_doors_on_ray(t_game *game, int column_x, double radiant_angle)
     }
 }
 
-double	ray_casting(t_game *game, double radiant_angle, int column_x)
+double ray_casting(t_game *game, double radiant_angle, int column_x)
 {
-	t_intersect	v;
-	t_intersect	h;
-	double		epsilon;
-	int			max_iterations;
-	int			iter;
-	double		dist_v;
-	double		dist_h;
-	char		hit_type_v;
-	char		hit_type_h;
+    t_intersect v;
+    t_intersect h;
+    double epsilon = 0.00001;
+    int max_iterations = 1000;
+    int iter = 0;
+    double dist_v, dist_h;
+    char hit_type_v, hit_type_h;
 
-	radiant_angle = normalize_angle(radiant_angle);
-	v = v_intersection(game->player.x, game->player.y, radiant_angle);
-	h = h_intersection(game->player.x, game->player.y, radiant_angle);
-	epsilon = 0.00001;
-	max_iterations = 1000;
-	iter = 0;
-	
-	// ✅ NOUVEAU : Vérifier les portes 'O' pendant le raycasting
-	double door_distance = check_open_door_on_ray(game, radiant_angle);
-	
-	while (is_not_wall(&game->map, v.x, v.y) && iter < max_iterations)
-	{
-		v.x += v.step_x;
-		v.y += v.step_y;
-		iter++;
-	}
-	iter = 0;
-	while (is_not_wall(&game->map, h.x, h.y) && iter < max_iterations)
-	{
-		h.x += h.step_x;
-		h.y += h.step_y;
-		iter++;
-	}
-	
-	dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));
-	dist_h = sqrt(pow(h.x - game->player.x, 2) + pow(h.y - game->player.y, 2));
-	hit_type_v = get_hit_type(&game->map, v.x, v.y);
-	hit_type_h = get_hit_type(&game->map, h.x, h.y);
-	
-	// ✅ Si on a trouvé une porte plus proche, l'utiliser
-	if (door_distance > 0 && door_distance < fmin(dist_v, dist_h))
-	{
-		store_ray_info(game, column_x, door_distance, 
-					   game->player.x + cos(radiant_angle) * door_distance,
-					   game->player.y + sin(radiant_angle) * door_distance, 
-					   0, 'O');
-		return (door_distance);
-	}
-	
-	// Reste du code existant...
-	if (fabs(dist_v - dist_h) < epsilon)
-	{
-		store_ray_info(game, column_x, dist_h, h.x, h.y, 0, hit_type_h);
-		return (dist_h);
-	}
-	if (dist_v < dist_h)
-	{
-		store_ray_info(game, column_x, dist_v, v.x, v.y, 1, hit_type_v);
-		return (dist_v);
-	}
-	else
-	{
-		store_ray_info(game, column_x, dist_h, h.x, h.y, 0, hit_type_h);
-		return (dist_h);
-	}
+    radiant_angle = normalize_angle(radiant_angle);
+    v = v_intersection(game->player.x, game->player.y, radiant_angle);
+    h = h_intersection(game->player.x, game->player.y, radiant_angle);
+
+    // ✅ FONCTION CORRIGÉE pour l'orientation
+    auto int is_door_hit(double hit_x, double hit_y, char hit_type, int is_vertical_intersection) {
+        if (hit_type != 'D')
+            return 1; // Pas une porte, traitement normal
+        
+        int center = TILE_SIZE / 2;  // 32
+        int door_thickness = 8;      // Épaisseur
+        
+        if (is_vertical_intersection) {
+            // Intersection verticale → porte horizontale → vérifier Y
+            int pixel_y = (int)hit_y % TILE_SIZE;
+            return (pixel_y >= (center - door_thickness/2) && 
+                    pixel_y <= (center + door_thickness/2));
+        } else {
+            // Intersection horizontale → porte verticale → vérifier X  
+            int pixel_x = (int)hit_x % TILE_SIZE;
+            return (pixel_x >= (center - door_thickness/2) && 
+                    pixel_x <= (center + door_thickness/2));
+        }
+    }
+
+    // Raycasting vertical avec vérification porte
+    iter = 0;
+    while (iter < max_iterations)
+    {
+        if (!is_not_wall(&game->map, v.x, v.y)) {
+            char hit_type = get_hit_type(&game->map, v.x, v.y);
+            if (is_door_hit(v.x, v.y, hit_type, 1)) // 1 = vertical
+                break; // Vraie collision
+        }
+        v.x += v.step_x;
+        v.y += v.step_y;
+        iter++;
+    }
+
+    // Raycasting horizontal avec vérification porte
+    iter = 0;
+    while (iter < max_iterations)
+    {
+        if (!is_not_wall(&game->map, h.x, h.y)) {
+            char hit_type = get_hit_type(&game->map, h.x, h.y);
+            if (is_door_hit(h.x, h.y, hit_type, 0)) // 0 = horizontal
+                break; // Vraie collision
+        }
+        h.x += h.step_x;
+        h.y += h.step_y;
+        iter++;
+    }
+
+    // Reste du code inchangé...
+    dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));
+    dist_h = sqrt(pow(h.x - game->player.x, 2) + pow(h.y - game->player.y, 2));
+    hit_type_v = get_hit_type(&game->map, v.x, v.y);
+    hit_type_h = get_hit_type(&game->map, h.x, h.y);
+
+    if (fabs(dist_v - dist_h) < epsilon)
+    {
+        store_ray_info(game, column_x, dist_h, h.x, h.y, 0, hit_type_h);
+        return (dist_h);
+    }
+    if (dist_v < dist_h)
+    {
+        store_ray_info(game, column_x, dist_v, v.x, v.y, 1, hit_type_v);
+        return (dist_v);
+    }
+    else
+    {
+        store_ray_info(game, column_x, dist_h, h.x, h.y, 0, hit_type_h);
+        return (dist_h);
+    }
 }
+
 
 double	no_fish_eye(double min_distance, double radiant_angle,
 		double player_angle)
