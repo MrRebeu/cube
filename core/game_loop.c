@@ -94,7 +94,6 @@ int	render_next_frame(t_game *game)
 	render_scene(game);
 	render_next_frame_enemies(game);
 	render_next_frame_weapons(game);
-	render_all_lasers(game); // ✅ NOUVEAU
 	draw_crosshair(game);
 	mlx_put_image_to_window(game->mlx, game->win, game->screen.ptr, 0, 0);
 	render_ui(game);

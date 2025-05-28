@@ -655,12 +655,13 @@ void open_door(t_game *game);
 void render_shooted_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray);
 
 void render_laser_overlays(t_game *game);
-int ray_crosses_laser(t_game *game, int column_x);
 void render_laser_overlay_on_column(t_game *game, int column_x);
 int count_lasers_in_map(t_game *game);
 int init_lasers(t_game *game);
 void render_laser_sprite(t_game *game, t_laser *laser);
 void draw_laser_lines(t_game *game, int start_col, int end_col, int top, int bottom, double depth);
 void render_all_lasers(t_game *game);
+int ray_crosses_laser(t_game *game, double radiant_angle);
+void draw_laser_line_on_column(t_game *game, int column);
 
 #endif

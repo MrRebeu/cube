@@ -1,2 +1,8 @@
-🚪 Porte ouverte initialisée à [7,14] -> (480.0, 928.0)
-No enemy found in map
+No enemy found in mapPortal 1 créé à [10, 2], orientation: Ouest
+Portal 2 créé à [5, 9], orientation: Sud
+🔍 DEBUG: Portail utilisé [5,9]
+🔍 DEBUG: Portal_1 à [10,2], orientation: 3
+🔍 DEBUG: Portal_2 à [5,9], orientation: 2
+✅ Utilise Portal_2 → Destination Portal_1
+Portail dest orienté: Ouest → Sortie par: Est
+✅ Téléportation réussie !

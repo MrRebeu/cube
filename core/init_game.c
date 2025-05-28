@@ -115,8 +115,6 @@ int init_game(t_game *game, char *map_file)
         return (0);
     if (!init_all_enemies(game))
         return (0);
-    if (!init_lasers(game)) // ✅ NOUVEAU
-        return (0);
     init_portals(game);
     init_ui_components(game);
     return (1);

@@ -338,37 +338,103 @@ void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int s
     }
 }
 
+// void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
+// {
+//     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+//     double H = renderer->wall_height;
+//     int texture_y;
+
+//     // ✅ MÊME LOGIQUE QUE render_door() pour le positionnement
+//     if (ray->hit_vertical)
+//     {
+//         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+//         if (cos(ray->radiant_angle) > 0)
+//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+//     }
+//     else
+//     {
+//         renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+//         if (sin(ray->radiant_angle) < 0)
+//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+//     }
+
+//     // ✅ LOGIQUE DE CONTOURS : ne rendre que les bords
+//     double cell_pos = (double)renderer->tex_x / TILE_SIZE; // Position 0.0 à 1.0 dans la cellule
+//     double frame_thickness = 0.15; // 15% de chaque côté pour les montants
+    
+//     // ✅ Ne rendre QUE si on est sur les montants (bords)
+//     int is_on_frame = (cell_pos < frame_thickness) || (cell_pos > 1.0 - frame_thickness);
+    
+//     if (!is_on_frame)
+//         return; // ✅ Centre libre = pas de rendu
+
+//     // ✅ RENDU IDENTIQUE aux portes fermées (même hauteur, même position)
+//     renderer->y = renderer->draw_start;
+//     while (renderer->y <= renderer->draw_end)
+//     {
+//         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
+//         {
+//             float rel = ((renderer->y - CY) / H) + 0.5f;
+//             texture_y = (int)(rel * TILE_SIZE);
+//             if (texture_y < 0) texture_y = 0;
+//             else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
+
+//             // ✅ Utiliser la texture de porte normale (ou open_door si elle existe)
+//             renderer->tex_addr = game->map.door_texture.addr
+//                 + (texture_y * game->map.door_texture.line_length
+//                 + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+//             renderer->color = *(unsigned int *)renderer->tex_addr;
+
+//             renderer->screen_pixel = game->screen.addr
+//                 + (renderer->y * game->screen.line_length
+//                 + column_x * (game->screen.bits_per_pixel / 8));
+//             *(unsigned int *)renderer->screen_pixel = renderer->color;
+//         }
+//         renderer->y++;
+//     }
+// }
+
 void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
     double H = renderer->wall_height;
     int texture_y;
-
-    // ✅ MÊME LOGIQUE QUE render_door() pour le positionnement
+    
+    // ✅ Calculer la position dans la cellule (0 à TILE_SIZE)
+    int cell_pos_x;
     if (ray->hit_vertical)
     {
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+        cell_pos_x = renderer->tex_x;
+    }
+    else
+    {
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+        cell_pos_x = renderer->tex_x;
+    }
+    
+    // ✅ Définir la largeur des montants (en pixels de texture)
+    int frame_width = TILE_SIZE / 8; // Montants de 8 pixels de large
+    
+    // ✅ Ne dessiner QUE si on est sur les montants (bords de la cellule)
+    int is_on_frame = (cell_pos_x < frame_width) || (cell_pos_x >= TILE_SIZE - frame_width);
+    
+    if (!is_on_frame)
+        return; // Laisser le centre vide (passage libre)
+    
+    // ✅ Ajuster tex_x pour utiliser la texture du mur normal
+    if (ray->hit_vertical)
+    {
         if (cos(ray->radiant_angle) > 0)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
     else
     {
-        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
         if (sin(ray->radiant_angle) < 0)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
 
-    // ✅ LOGIQUE DE CONTOURS : ne rendre que les bords
-    double cell_pos = (double)renderer->tex_x / TILE_SIZE; // Position 0.0 à 1.0 dans la cellule
-    double frame_thickness = 0.15; // 15% de chaque côté pour les montants
-    
-    // ✅ Ne rendre QUE si on est sur les montants (bords)
-    int is_on_frame = (cell_pos < frame_thickness) || (cell_pos > 1.0 - frame_thickness);
-    
-    if (!is_on_frame)
-        return; // ✅ Centre libre = pas de rendu
-
-    // ✅ RENDU IDENTIQUE aux portes fermées (même hauteur, même position)
+    // ✅ Rendu du montant avec la texture de mur
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)
     {
@@ -379,10 +445,11 @@ void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray
             if (texture_y < 0) texture_y = 0;
             else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
-            // ✅ Utiliser la texture de porte normale (ou open_door si elle existe)
-            renderer->tex_addr = game->map.door_texture.addr
-                + (texture_y * game->map.door_texture.line_length
-                + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+            // ✅ Utiliser la texture de mur normal (pas une texture spéciale)
+            t_img *wall_texture = get_wall_texture(game, ray);
+            renderer->tex_addr = wall_texture->addr
+                + (texture_y * wall_texture->line_length
+                + renderer->tex_x * (wall_texture->bits_per_pixel / 8));
             renderer->color = *(unsigned int *)renderer->tex_addr;
 
             renderer->screen_pixel = game->screen.addr

@@ -223,7 +223,6 @@ int	is_not_wall_for_movement(t_map *map, double x, double y)
 	// ✅ 'O' (porte ouverte) = le joueur PEUT passer
 	return (1);
 }
-
 int is_not_wall(t_map *map, double x, double y)
 {
     int map_x = (int)(x / TILE_SIZE);
@@ -234,8 +233,12 @@ int is_not_wall(t_map *map, double x, double y)
     
     char cell = map->matrix[map_y][map_x];
     
-    // ✅ Pour les portes ouvertes, vérifier la position dans la cellule
-    if (cell == 'O' || cell == 'o' || cell == 'L')
+    // ✅ LASER = TRANSPARENT TOTAL (pas de montants)
+    if (cell == 'L')
+        return (1); // ← Les rayons traversent complètement
+    
+    // ✅ PORTES OUVERTES = avec montants sur les bords
+    if (cell == 'O' || cell == 'o')
     {
         double cell_x = fmod(x, TILE_SIZE);
         double frame_width = TILE_SIZE * 0.15;
@@ -247,7 +250,7 @@ int is_not_wall(t_map *map, double x, double y)
             return (0); // Montant solide
     }
     
-    // ✅ Autres cellules comme avant
+    // ✅ Murs solides
     if (cell == '1' || cell == 'D' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M') 
         return (0);
     else

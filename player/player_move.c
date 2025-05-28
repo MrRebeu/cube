@@ -262,9 +262,9 @@ void	move_player(t_player *player)
 	{
 		new_x = player->x + player->dir_x * speed;
 		new_y = player->y + player->dir_y * speed;
-		if (player->game && is_not_wall(&player->game->map, new_x, player->y))
+		if (player->game && is_not_wall_for_movement(&player->game->map, new_x, player->y))
 			player->x = new_x;
-		if (player->game && is_not_wall(&player->game->map, player->x, new_y))
+		if (player->game && is_not_wall_for_movement(&player->game->map, player->x, new_y))
 			player->y = new_y;
 	}
 	// Indietro

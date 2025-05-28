@@ -1,186 +1,79 @@
 #include "cube3d.h"
 
-int count_lasers_in_map(t_game *game)
+int ray_crosses_laser(t_game *game, double radiant_angle)
 {
-    int count = 0;
-    int y = 0;
-    int x;
+    double ray_x = game->player.x;
+    double ray_y = game->player.y;
+    double ray_dx = cos(radiant_angle);
+    double ray_dy = sin(radiant_angle);
+    double step = 5.0;
     
-    while (y < game->map.height)
+    // ✅ Marcher le long du rayon
+    for (double distance = 0; distance < 800.0; distance += step)
     {
-        x = 0;
-        while (x < game->map.width)
+        ray_x += ray_dx * step;
+        ray_y += ray_dy * step;
+        
+        int map_x = (int)(ray_x / TILE_SIZE);
+        int map_y = (int)(ray_y / TILE_SIZE);
+        
+        if (map_x >= 0 && map_x < game->map.width && 
+            map_y >= 0 && map_y < game->map.height)
         {
-            if (game->map.matrix[y][x] == 'L')
-                count++;
-            x++;
+            if (game->map.matrix[map_y][map_x] == 'L')
+                return (1); // ✅ Ce rayon traverse un laser !
         }
-        y++;
-    }
-    return count;
-}
-
-
-int init_lasers(t_game *game)
-{
-    int y = 0;
-    int x;
-    int laser_index = 0;
-    
-    game->num_lasers = count_lasers_in_map(game);
-    
-    if (game->num_lasers == 0)
-    {
-        game->lasers = NULL;
-        return (1);
+        
+        // ✅ Arrêter si on touche un mur solide
+        if (map_x >= 0 && map_x < game->map.width && 
+            map_y >= 0 && map_y < game->map.height &&
+            game->map.matrix[map_y][map_x] == '1')
+            break;
     }
     
-    game->lasers = malloc(sizeof(t_laser) * game->num_lasers);
-    if (!game->lasers)
-        return (0);
-    
-    while (y < game->map.height)
-    {
-        x = 0;
-        while (x < game->map.width)
-        {
-            if (game->map.matrix[y][x] == 'L' && laser_index < game->num_lasers)
-            {
-                game->lasers[laser_index].x = (x * TILE_SIZE) + (TILE_SIZE / 2);
-                game->lasers[laser_index].y = (y * TILE_SIZE) + (TILE_SIZE / 2);
-                game->lasers[laser_index].active = 1;
-                laser_index++;
-            }
-            x++;
-        }
-        y++;
-    }
-    
-    return (1);
+    return (0);
 }
 
-
-void render_laser_sprite(t_game *game, t_laser *laser)
+void render_laser_overlays(t_game *game)
 {
-    // ✅ Même logique que les ennemis
-    double dx = laser->x - game->player.x;
-    double dy = laser->y - game->player.y;
-    double distance = sqrt(dx * dx + dy * dy);
+    int col = 0;
     
-    if (distance < 5.0 || distance > 800.0)
-        return;
-    
-    // ✅ Transformation 3D
-    double inv_det = 1.0f / (game->player.plane_x * game->player.dir_y - 
-                              game->player.dir_x * game->player.plane_y);
-    double transform_x = inv_det * (game->player.dir_y * dx - game->player.dir_x * dy);
-    double transform_y = inv_det * (-game->player.plane_y * dx + game->player.plane_x * dy);
-    
-    if (transform_y <= 0.1f)
-        return;
-    
-    // ✅ Position à l'écran
-    int screen_x = (int)((DISPLAY_WIDTH / 2) * (1 + transform_x / transform_y));
-    
-    if (screen_x < -50 || screen_x > DISPLAY_WIDTH + 50)
-        return;
-    
-    // ✅ Taille basée sur la distance
-    double distance_to_projection = (DISPLAY_WIDTH / 2.0) / tan(game->player.fov / 2.0);
-    double laser_height = TILE_SIZE * 1.2;
-    int sprite_height = (int)((laser_height / transform_y) * distance_to_projection);
-    
-    if (sprite_height < 10) sprite_height = 10;
-    if (sprite_height > DISPLAY_HEIGHT) sprite_height = DISPLAY_HEIGHT;
-    
-    // ✅ Position verticale
-    int laser_top = (DISPLAY_HEIGHT / 2) - (sprite_height / 2) + game->pitch;
-    int laser_bottom = laser_top + sprite_height;
-    
-    // ✅ Largeur (très fine)
-    int laser_width = 3;
-    int start_col = screen_x - laser_width / 2;
-    int end_col = screen_x + laser_width / 2;
-    
-    if (start_col < 0) start_col = 0;
-    if (end_col >= DISPLAY_WIDTH) end_col = DISPLAY_WIDTH - 1;
-    
-    // ✅ Dessiner les 4 traits rouges
-    draw_laser_lines(game, start_col, end_col, laser_top, laser_bottom, transform_y);
-}
-
-void draw_laser_lines(t_game *game, int start_col, int end_col, int top, int bottom, double depth)
-{
-    unsigned int laser_color = 0xFF0000;
-    int height = bottom - top;
-    int trait_thickness = 2;
-    
-    for (int col = start_col; col <= end_col; col++)
+    while (col < DISPLAY_WIDTH)
     {
-        if (col < 0 || col >= DISPLAY_WIDTH)
-            continue;
-            
-        // ✅ Vérifier depth buffer (comme les ennemis)
-        if (depth >= game->depth_buffer[col])
-            continue;
-        
-        // ✅ 4 traits verticaux
-        int spacing = height / 5;
-        
-        // Trait 1
-        for (int y = top; y < top + trait_thickness && y <= bottom; y++)
+        // ✅ Vérifier si ce rayon traverse un laser
+        if (ray_crosses_laser(game, game->rays[col].radiant_angle))
         {
-            if (y >= 0 && y < DISPLAY_HEIGHT)
-            {
-                char *dst = game->screen.addr + y * game->screen.line_length + 
-                           col * (game->screen.bits_per_pixel / 8);
-                *(unsigned int *)dst = laser_color;
-            }
+            draw_laser_line_on_column(game, col);
         }
-        
-        // Trait 2
-        for (int y = top + spacing; y < top + spacing + trait_thickness && y <= bottom; y++)
-        {
-            if (y >= 0 && y < DISPLAY_HEIGHT)
-            {
-                char *dst = game->screen.addr + y * game->screen.line_length + 
-                           col * (game->screen.bits_per_pixel / 8);
-                *(unsigned int *)dst = laser_color;
-            }
-        }
-        
-        // Trait 3
-        for (int y = top + spacing * 2; y < top + spacing * 2 + trait_thickness && y <= bottom; y++)
-        {
-            if (y >= 0 && y < DISPLAY_HEIGHT)
-            {
-                char *dst = game->screen.addr + y * game->screen.line_length + 
-                           col * (game->screen.bits_per_pixel / 8);
-                *(unsigned int *)dst = laser_color;
-            }
-        }
-        
-        // Trait 4
-        for (int y = bottom - trait_thickness; y <= bottom; y++)
-        {
-            if (y >= 0 && y < DISPLAY_HEIGHT)
-            {
-                char *dst = game->screen.addr + y * game->screen.line_length + 
-                           col * (game->screen.bits_per_pixel / 8);
-                *(unsigned int *)dst = laser_color;
-            }
-        }
+        col++;
     }
 }
 
-void render_all_lasers(t_game *game)
+void draw_laser_line_on_column(t_game *game, int column)
 {
-    int i = 0;
+    unsigned int laser_color = 0xFF0000; // Rouge
+    int center_y = DISPLAY_HEIGHT / 2 + game->pitch;
     
-    while (i < game->num_lasers)
+    // ✅ Dessiner 3 lignes horizontales courtes
+    int line_positions[3] = {center_y - 20, center_y, center_y + 20};
+    int line_width = 30; // Largeur de chaque ligne
+    
+    for (int line = 0; line < 3; line++)
     {
-        if (game->lasers[i].active)
-            render_laser_sprite(game, &game->lasers[i]);
-        i++;
+        int y = line_positions[line];
+        if (y >= 0 && y < DISPLAY_HEIGHT)
+        {
+            // ✅ Dessiner une ligne horizontale centrée sur cette colonne
+            for (int x_offset = -line_width/2; x_offset <= line_width/2; x_offset++)
+            {
+                int x = column + x_offset;
+                if (x >= 0 && x < DISPLAY_WIDTH)
+                {
+                    char *pixel = game->screen.addr + (y * game->screen.line_length + 
+                                 x * (game->screen.bits_per_pixel / 8));
+                    *(unsigned int *)pixel = laser_color;
+                }
+            }
+        }
     }
 }
