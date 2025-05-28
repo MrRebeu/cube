@@ -114,6 +114,17 @@ int	load_door_textures(t_game *game)
 			&game->map.open_door_texture.bits_per_pixel,
 			&game->map.open_door_texture.line_length,
 			&game->map.open_door_texture.endian);
+
+	game->map.open_door_shooted_texture.ptr = mlx_xpm_file_to_image(game->mlx,
+			"./texture/door_shooted_open.xpm", &width, &height);
+	if (!game->map.open_door_shooted_texture.ptr)
+		return (0);
+	game->map.open_door_shooted_texture.width = width;
+	game->map.open_door_shooted_texture.height = height;
+	game->map.open_door_shooted_texture.addr = mlx_get_data_addr(game->map.open_door_texture.ptr,
+			&game->map.open_door_shooted_texture.bits_per_pixel,
+			&game->map.open_door_shooted_texture.line_length,
+			&game->map.open_door_shooted_texture.endian);
 	return (1);
 }
 

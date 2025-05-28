@@ -171,6 +171,10 @@ int	key_press(int keycode, t_player *player)
 			printf("❌ Heal Gun non collecté !\n");
 		}
 	}
+	if (keycode == F)
+	{
+		open_door(player->game);
+	}
 	return (0);
 }
 int	mouse_move(int x, int y, t_game *game)

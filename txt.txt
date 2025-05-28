@@ -1,0 +1,2 @@
+🚪 Porte ouverte initialisée à [7,14] -> (480.0, 928.0)
+No enemy found in map

@@ -216,7 +216,8 @@ int	is_not_wall_for_movement(t_map *map, double x, double y)
 	// ✅ Pour le mouvement : le joueur peut passer dans les portes ouvertes
 	if (map->matrix[map_y][map_x] == '1' || map->matrix[map_y][map_x] == 'D'
 		|| map->matrix[map_y][map_x] == 'P' || map->matrix[map_y][map_x] == 'i'
-		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M')
+		|| map->matrix[map_y][map_x] == 'd' || map->matrix[map_y][map_x] == 'M'
+		|| map->matrix[map_y][map_x] == 'L')
 		return (0);
 	
 	// ✅ 'O' (porte ouverte) = le joueur PEUT passer
@@ -233,8 +234,21 @@ int is_not_wall(t_map *map, double x, double y)
     
     char cell = map->matrix[map_y][map_x];
     
-    // ✅ Pour le raycasting : 'D' est un mur solide (la porte est fermée)
-    if (cell == '1' || cell == 'O' || cell == 'D' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M')
+    // ✅ Pour les portes ouvertes, vérifier la position dans la cellule
+    if (cell == 'O' || cell == 'o' || cell == 'L')
+    {
+        double cell_x = fmod(x, TILE_SIZE);
+        double frame_width = TILE_SIZE * 0.15;
+        
+        // ✅ Si on est dans la zone centrale, c'est libre
+        if (cell_x > frame_width && cell_x < TILE_SIZE - frame_width)
+            return (1); // Passage libre
+        else
+            return (0); // Montant solide
+    }
+    
+    // ✅ Autres cellules comme avant
+    if (cell == '1' || cell == 'D' || cell == 'P' || cell == 'i' || cell == 'd' || cell == 'M') 
         return (0);
     else
         return (1);

@@ -146,9 +146,7 @@ void calculate_shoot(t_game *game)
                 }
             }
         }
-        
-        // Se non abbiamo colpito nessun nemico, gestisci muri/porte normalmente
-        if (!enemy_hit)
+                if (!enemy_hit)
         {
             impact_x = center_ray->wall_hit_x;
             impact_y = center_ray->wall_hit_y;
@@ -163,61 +161,14 @@ void calculate_shoot(t_game *game)
             {
                 game->map.matrix[map_y][map_x] = 'd';
             }
+            else if (center_ray->hit_type == 'd')
+            {
+                game->map.matrix[map_y][map_x] = 'o';
+            }
         }
     }
 }
 
-// int mouse_button(int button, int x, int y, t_game *game)
-// {
-//     (void)x;
-//     (void)y;
-    
-//     if (game->map.north.ptr != NULL)
-//         return 0;
-        
-//     if (button == 1) // Clic gauche pour tirer
-//     {
-//         if (game->current_weapon == HANDS)
-//             return 0;
-            
-//         // Vérifier qu'on a bien l'arme
-//         if (!game->player.has_weapon[game->current_weapon])
-//             return 0;
-            
-//         if (game->current_weapon == RAYGUN)
-//         {
-//             if (!game->player.weapon.is_firing)
-//             {
-//                 game->player.weapon.is_firing = 1;
-//                 game->player.weapon.current_state = WEAPON_PREFIRE;
-//                 game->player.weapon.frame = 1;
-//                 game->player.weapon.frame_delay = 10;
-//                 calculate_shoot(game);
-//             }
-//         }
-//         else if (game->current_weapon == PORTALGUN)
-//         {
-//             if (game->portal_count < 2)
-//             {
-//                 calculate_shoot(game);
-//             }
-//         }
-//     }
-//     else if (button == 4 || button == 5) // Scroll souris
-//     {
-//         if (button == 4) // Scroll up
-//             switch_to_next_weapon(&game->player);
-//         else // Scroll down
-//             switch_to_prev_weapon(&game->player);
-//     }
-//     else if (button == 3 && game->current_weapon == PORTALGUN)
-//     {
-//         if (game->player.has_weapon[PORTALGUN])
-//             remove_all_portals(game);
-//     }
-
-//     return (0);
-// }
 int mouse_button(int button, int x, int y, t_game *game)
 {
     (void)x;
@@ -289,39 +240,3 @@ int mouse_button(int button, int x, int y, t_game *game)
 
     return (0);
 }
-
-// int damage_enemy_at_position(t_game *game, int tile_x, int tile_y, int damage)
-// {
-//     int i = 0;
-    
-//     while (i < game->num_enemies)
-//     {
-//         t_enemy *enemy = &game->enemies[i];
-        
-//         // AVANT : comparaison directe car enemy était en cellules
-//         // int enemy_tile_x = (int)(enemy->x);
-//         // int enemy_tile_y = (int)(enemy->y);
-        
-//         // APRÈS : convertir pixels → cellules
-//         int enemy_tile_x = (int)(enemy->x / TILE_SIZE);
-//         int enemy_tile_y = (int)(enemy->y / TILE_SIZE);
-
-//         if (enemy_tile_x == tile_x && enemy_tile_y == tile_y && enemy->active)
-//         {
-//             enemy->health -= damage;
-//             if (enemy->health <= 0)
-//             {
-//                 //enemy->active = 0;
-//                 enemy->death_timer = 50;
-//                 enemy->animation.current_frame = 0;
-//                 enemy->animation.frame_counter = 0;
-//                 enemy->state = DEAD;
-//                 return (1); // Ennemi mort
-//             }
-//             else
-//                 return (0);
-//         }
-//         i++;
-//     }
-//     return (0);
-// }

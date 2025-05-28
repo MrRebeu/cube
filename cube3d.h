@@ -34,6 +34,7 @@
 # define R 114
 # define Q 113
 # define E 101
+# define F 32
 # define LEFT 65508
 # define RIGHT 65363
 
@@ -62,6 +63,14 @@
 
 // ========== STRUCTURES ==========
 typedef struct s_game	t_game;
+
+typedef struct s_laser
+{
+    double x;
+    double y;
+    int active;
+    double distance_to_player;
+} t_laser;
 
 typedef struct s_enemy_animation
 {
@@ -258,6 +267,7 @@ typedef struct s_map
 	t_img				wall_shooted_texture;
 	t_img				door_texture;
 	t_img				open_door_texture;
+	t_img				open_door_shooted_texture;
 	t_img				door_shooted_texture;
 	t_img				wall_portal_texture;
 	t_img				arm_1;
@@ -307,6 +317,8 @@ typedef struct s_game
 	int					num_weapon_pickup;
 	t_open_door			*open_doors;
     int					num_open_doors;
+	t_laser *lasers;
+    int num_lasers;
 }						t_game;
 
 typedef struct s_render
@@ -639,5 +651,16 @@ void render_open_door_ultra_thin(t_game *game, int column_x, t_render *renderer,
 void render_simple_door_line(t_game *game, int column_x, t_render *renderer);
 t_open_door *find_door_at_position(t_game *game, int map_x, int map_y);
 void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray);
+void open_door(t_game *game);
+void render_shooted_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray);
+
+void render_laser_overlays(t_game *game);
+int ray_crosses_laser(t_game *game, int column_x);
+void render_laser_overlay_on_column(t_game *game, int column_x);
+int count_lasers_in_map(t_game *game);
+int init_lasers(t_game *game);
+void render_laser_sprite(t_game *game, t_laser *laser);
+void draw_laser_lines(t_game *game, int start_col, int end_col, int top, int bottom, double depth);
+void render_all_lasers(t_game *game);
 
 #endif
