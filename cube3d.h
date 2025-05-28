@@ -34,7 +34,8 @@
 # define R 114
 # define Q 113
 # define E 101
-# define F 32
+# define ESPACE 32
+# define F 102
 # define LEFT 65508
 # define RIGHT 65363
 

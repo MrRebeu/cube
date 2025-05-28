@@ -396,62 +396,53 @@ void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int s
 
 void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
-    double H = renderer->wall_height;
-    int texture_y;
     
-    // ✅ Calculer la position dans la cellule (0 à TILE_SIZE)
-    int cell_pos_x;
+    // ✅ Position dans la cellule (0 à 64 si TILE_SIZE=64)
+    double pos_in_cell;
+    
     if (ray->hit_vertical)
     {
-        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
-        cell_pos_x = renderer->tex_x;
+        pos_in_cell = fmod(ray->wall_hit_y, TILE_SIZE);
     }
     else
     {
-        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
-        cell_pos_x = renderer->tex_x;
+        pos_in_cell = fmod(ray->wall_hit_x, TILE_SIZE);
     }
     
-    // ✅ Définir la largeur des montants (en pixels de texture)
-    int frame_width = TILE_SIZE / 8; // Montants de 8 pixels de large
+    if (pos_in_cell < 0) pos_in_cell += TILE_SIZE;
     
-    // ✅ Ne dessiner QUE si on est sur les montants (bords de la cellule)
-    int is_on_frame = (cell_pos_x < frame_width) || (cell_pos_x >= TILE_SIZE - frame_width);
+    // ✅ Montants représentent 12.5% de chaque côté (8/64)
+    double montant_percentage = 0.125;  // 12.5%
     
-    if (!is_on_frame)
-        return; // Laisser le centre vide (passage libre)
+    // ✅ Vérifier si on est sur un montant
+    double relative_pos = pos_in_cell / TILE_SIZE;  // 0.0 à 1.0
     
-    // ✅ Ajuster tex_x pour utiliser la texture du mur normal
+    if (relative_pos > montant_percentage && relative_pos < (1.0 - montant_percentage))
+        return;  // Centre vide
+    
+    // ✅ Texture coordonnée pour le montant
     if (ray->hit_vertical)
     {
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
         if (cos(ray->radiant_angle) > 0)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
     else
     {
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
         if (sin(ray->radiant_angle) < 0)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
 
-    // ✅ Rendu du montant avec la texture de mur
+    // ✅ Rendu avec couleur fixe
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)
     {
         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
-            float rel = ((renderer->y - CY) / H) + 0.5f;
-            texture_y = (int)(rel * TILE_SIZE);
-            if (texture_y < 0) texture_y = 0;
-            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
-
-            // ✅ Utiliser la texture de mur normal (pas une texture spéciale)
-            t_img *wall_texture = get_wall_texture(game, ray);
-            renderer->tex_addr = wall_texture->addr
-                + (texture_y * wall_texture->line_length
-                + renderer->tex_x * (wall_texture->bits_per_pixel / 8));
-            renderer->color = *(unsigned int *)renderer->tex_addr;
-
+            // Couleur marron pour les montants
+            renderer->color = 0x5D4037;
+            
             renderer->screen_pixel = game->screen.addr
                 + (renderer->y * game->screen.line_length
                 + column_x * (game->screen.bits_per_pixel / 8));
@@ -459,26 +450,6 @@ void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray
         }
         renderer->y++;
     }
-}
-
-int world_to_screen_column(t_game *game, double world_x, double world_y)
-{
-    // ✅ Vecteur du joueur vers le point
-    double dx = world_x - game->player.x;
-    double dy = world_y - game->player.y;
-    
-    // ✅ Angle du point par rapport au joueur
-    double point_angle = atan2(dy, dx);
-    point_angle = normalize_angle(point_angle);
-    
-    // ✅ Différence avec l'angle de vue du joueur
-    double angle_diff = normalize_angle(point_angle - game->player.angle);
-    
-    // ✅ Convertir en colonne d'écran
-    double screen_ratio = angle_diff / (game->player.fov / 2.0);
-    int screen_column = DISPLAY_WIDTH / 2 + (int)(screen_ratio * (DISPLAY_WIDTH / 2));
-    
-    return screen_column;
 }
 
 void render_door_columns(t_game *game, t_open_door *door, int col_start, int col_end, 
