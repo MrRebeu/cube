@@ -681,7 +681,6 @@ void start_healgun_animation(t_game *game);
 void update_healgun_animation(t_game *game);
 int load_healgun(t_game *game);
 void use_healgun(t_game *game);
-int load_healgun_sprites(t_game *game);
 int	load_single_weapon_texture(void *mlx, t_img *tex, char *path);
 
 

@@ -34,7 +34,7 @@ void check_weapon_pickup(t_player *player)
 				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = RAYGUN;
 				player->game->current_weapon = RAYGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, RAYGUN);
 			}
 		}
 		if (cell_type == 'G')
@@ -44,18 +44,7 @@ void check_weapon_pickup(t_player *player)
 				player->has_weapon[PORTALGUN] = true;
 				player->current_weapon = PORTALGUN;
 				player->game->current_weapon = PORTALGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
-			}
-		}
-		if (cell_type == 'R')
-		{
-			if (!player->has_weapon[RAYGUN])
-			{
-				player->has_weapon[RAYGUN] = true;
-				player->game->map.matrix[player_map_y][player_map_x] = '0';
-				player->current_weapon = RAYGUN;
-				player->game->current_weapon = RAYGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);	
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, PORTALGUN);
 			}
 		}
 		if (cell_type == 'H')
@@ -68,7 +57,8 @@ void check_weapon_pickup(t_player *player)
                 player->game->current_weapon = HEALGUN;
                 player->healgun_ammo = 1; // Commence avec 1 munition
                 player->healgun_is_loaded = 1;
-                player->game->map.matrix[player_map_y][player_map_x] = '0'; // Enlever de la carte
+                player->game->map.matrix[player_map_y][player_map_x] = '0';
+				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
                 printf("💉 HEAL GUN COLLECTÉ ! (1 munition)\n");
             }
             else

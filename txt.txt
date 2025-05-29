@@ -1,2 +1,30 @@
+✅ Chargé: ./texture/healgun.xpm
+✅ Chargé: ./texture/healgun_1.xpm
+✅ Chargé: ./texture/healgun_2.xpm
+✅ Chargé: ./texture/healgun_3.xpm
+✅ Chargé: ./texture/healgun_4.xpm
 Warning: healgun_pickup.xpm non trouvé
-No enemy found in map
+No enemy found in map✅ Arme désactivée: type=3 à [7,15]
+💉 HEAL GUN COLLECTÉ ! (1 munition)
+💉 Animation Heal Gun démarrée !
+💉 Heal Gun utilisé ! Santé: 100, Munitions: 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+❌ Heal Gun vide ! Trouvez des munitions.
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+❌ Heal Gun vide ! Trouvez des munitions.
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0
+🎬 Rendu frame 0

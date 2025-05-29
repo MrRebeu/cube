@@ -313,5 +313,7 @@ int	load_all_weapons(t_game *game)
 		return (0);
 	if (!load_portalgun(game))
 		return (0);
+	if (!load_healgun(game))  // ← AJOUTER CETTE LIGNE
+		return (0);
 	return (1);
 }

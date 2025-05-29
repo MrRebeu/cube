@@ -68,9 +68,18 @@ void render_weapon(t_game *game)
     if (game->map.north.ptr != NULL)
         return;
         
-    if (game->current_weapon == HEALGUN && game->player.healgun_animating)
+    if (game->current_weapon == HEALGUN)
     {
-        weapon = &game->healgun_frames[game->player.healgun_anim_frame];
+        // Pour le healgun, TOUJOURS utiliser healgun_frames
+        if (game->player.healgun_animating)
+        {
+            weapon = &game->healgun_frames[game->player.healgun_anim_frame];
+            printf("🎬 Rendu frame %d\n", game->player.healgun_anim_frame); // Debug
+        }
+        else
+        {
+            weapon = &game->healgun_frames[0]; // Frame par défaut (repos)
+        }
     }
     else
     {

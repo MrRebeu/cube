@@ -35,6 +35,8 @@ void render_healgun_animation(t_game *game)
 
 void use_healgun(t_game *game)
 {
+    start_healgun_animation(game); // ✅ DÉMARRER L'ANIMATION
+
     // ✅ CONSOMMER LA MUNITION
     game->player.healgun_ammo--;
     game->player.healgun_is_loaded = 0;
@@ -57,9 +59,9 @@ void use_healgun(t_game *game)
         printf("🔋 Heal Gun rechargé automatiquement !\n");
     }
 }
-int load_healgun_sprites(t_game *game)
+int load_healgun(t_game *game)
 {
-    const char *healgun_sprites[7] = {
+    const char *healgun_sprites[5] = { // ← Bien 5 sprites
         "./texture/healgun.xpm",
         "./texture/healgun_1.xpm", 
         "./texture/healgun_2.xpm",
@@ -67,7 +69,7 @@ int load_healgun_sprites(t_game *game)
         "./texture/healgun_4.xpm"
     };
     
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++) // ← Bien 5 iterations
     {
         if (!load_single_weapon_texture(game->mlx, &game->healgun_frames[i], 
                                        (char *)healgun_sprites[i]))
@@ -75,6 +77,7 @@ int load_healgun_sprites(t_game *game)
             printf("Erreur: %s non trouvé\n", healgun_sprites[i]);
             return (0);
         }
+        printf("✅ Chargé: %s\n", healgun_sprites[i]); // Debug
     }
     return (1);
 }
@@ -88,20 +91,22 @@ void update_healgun_animation(t_game *game)
     
     if (game->player.healgun_anim_timer <= 0)
     {
-        game->player.healgun_anim_state++;
+        game->player.healgun_anim_frame++; // ← CORRIGER : utiliser anim_frame au lieu de anim_state
         
         // Durées différentes pour chaque frame
         int frame_durations[5] = {10, 15, 20, 15, 10}; // En frames
         
-        if (game->player.healgun_anim_state >= 5)
+        if (game->player.healgun_anim_frame >= 5)
         {
             // Animation terminée
             game->player.healgun_animating = 0;
-            game->player.healgun_anim_state = 0;
+            game->player.healgun_anim_frame = 0; // ← CORRIGER : remettre anim_frame à 0
+            printf("✅ Animation Heal Gun terminée !\n");
         }
         else
         {
-            game->player.healgun_anim_timer = frame_durations[game->player.healgun_anim_state];
+            game->player.healgun_anim_timer = frame_durations[game->player.healgun_anim_frame];
+            printf("💉 Frame healgun: %d\n", game->player.healgun_anim_frame); // Debug
         }
     }
 }
@@ -125,52 +130,3 @@ void start_healgun_animation(t_game *game)
     
     printf("💉 Animation Heal Gun démarrée !\n");
 }
-
-// void update_healgun_animation(t_game *game)
-// {
-//     if (!game->player.healgun_animating)
-//         return;
-        
-//     game->player.healgun_anim_timer--;
-    
-//     if (game->player.healgun_anim_timer <= 0)
-//     {
-//         game->player.healgun_anim_frame++;
-        
-//         // ✅ DURÉES POUR CHAQUE FRAME
-//         int frame_durations[5] = {10, 15, 25, 15, 10}; // idle, raise, inject, retract, lower
-        
-//         // ✅ APPLIQUER LE HEAL À LA FRAME D'INJECTION
-//         if (game->player.healgun_anim_frame == 2 && !game->player.healgun_heal_applied)
-//         {
-//             // Frame d'injection - appliquer le soins
-//             game->player.health += 25;
-//             if (game->player.health > 100)
-//                 game->player.health = 100;
-                
-//             // Consommer munition
-//             game->player.healgun_ammo--;
-//             game->player.healgun_is_loaded = 0;
-//             game->player.healgun_heal_applied = 1;
-            
-//             printf("💉 +25 HP ! Santé: %d, Munitions: %d\n", 
-//                    game->player.health, game->player.healgun_ammo);
-            
-//             // Recharger si on a d'autres munitions
-//             if (game->player.healgun_ammo > 0)
-//                 game->player.healgun_is_loaded = 1;
-//         }
-        
-//         if (game->player.healgun_anim_frame >= 5)
-//         {
-//             // ✅ ANIMATION TERMINÉE
-//             game->player.healgun_animating = 0;
-//             game->player.healgun_anim_frame = 0;
-//             printf("✅ Animation Heal Gun terminée !\n");
-//         }
-//         else
-//         {
-//             game->player.healgun_anim_timer = frame_durations[game->player.healgun_anim_frame];
-//         }
-//     }
-// }
