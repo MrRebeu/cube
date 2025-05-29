@@ -50,7 +50,7 @@ int count_weapons_in_map(t_game *game)
         x = 0;
         while (x < game->map.width)
         {
-            if (game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G')
+            if (game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G' || game->map.matrix[y][x] == 'H')
                 count++;
             x++;
         }
@@ -89,7 +89,7 @@ int set_weapon_positions(t_game *game)
         x = 0;
         while (x < game->map.width)
         {
-            if ((game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G') &&
+            if ((game->map.matrix[y][x] == 'R' || game->map.matrix[y][x] == 'G' || game->map.matrix[y][x] == 'H' )&&
                 weapon_index < game->num_weapon_pickup)
             {
                 game->weapon_pickup[weapon_index].x = (x * TILE_SIZE) + (TILE_SIZE / 2);
@@ -115,7 +115,16 @@ int set_weapon_positions(t_game *game)
                         // Continue quand même au lieu de faire échouer
                     }
                 }
-                
+                else if (game->map.matrix[y][x] == 'H')
+                {
+                    game->weapon_pickup[weapon_index].weapon_type = HEALGUN;
+                    if (!load_weapon_pickup_sprite(game, &game->weapon_pickup[weapon_index], 
+                        "./texture/healgun_pickup.xpm"))
+                    {
+                        printf("Warning: healgun_pickup.xpm non trouvé\n");
+                        // Continue quand même au lieu de faire échouer
+                    }
+                }
                 game->weapon_pickup[weapon_index].active = 1;
                 weapon_index++;
             }
@@ -127,7 +136,7 @@ int set_weapon_positions(t_game *game)
     // ✅ Toujours succès - même s'il n'y a pas d'armes
     return (1);
 }
-static int	load_single_weapon_texture(void *mlx, t_img *tex, char *path)
+int	load_single_weapon_texture(void *mlx, t_img *tex, char *path)
 {
 	int	width;
 	int	height;
@@ -167,24 +176,28 @@ int	load_weapon_textures(void *mlx, t_img weapon_textures[3], int weapon_type)
 }
 void disable_weapon_pickup_at_position(t_game *game, int map_x, int map_y, int weapon_type)
 {
-	double target_x = (map_x * TILE_SIZE) + (TILE_SIZE / 2);
-	double target_y = (map_y * TILE_SIZE) + (TILE_SIZE / 2);
 	int i = 0;
 	
 	while (i < game->num_weapon_pickup)
 	{
-		// Vérifier position ET type d'arme
-		if (game->weapon_pickup[i].active &&
-			game->weapon_pickup[i].weapon_type == weapon_type &&
-			fabs(game->weapon_pickup[i].x - target_x) < 10.0 &&
-			fabs(game->weapon_pickup[i].y - target_y) < 10.0)
+		if (game->weapon_pickup[i].active)
 		{
-			game->weapon_pickup[i].active = 0; // ✅ Désactiver le sprite
-			printf("🗑️ Sprite arme désactivé à [%d,%d] type=%d\n", map_x, map_y, weapon_type);
-			return;
+			// Calculer la position de la cellule de cette arme
+			int weapon_map_x = (int)(game->weapon_pickup[i].x / TILE_SIZE);
+			int weapon_map_y = (int)(game->weapon_pickup[i].y / TILE_SIZE);
+			
+			// Vérifier si c'est la même cellule et le même type
+			if (weapon_map_x == map_x && weapon_map_y == map_y && 
+				game->weapon_pickup[i].weapon_type == weapon_type)
+			{
+				game->weapon_pickup[i].active = 0;
+				printf("✅ Arme désactivée: type=%d à [%d,%d]\n", weapon_type, map_x, map_y);
+				return;
+			}
 		}
 		i++;
 	}
+	printf("❌ Arme non trouvée: type=%d à [%d,%d]\n", weapon_type, map_x, map_y);
 }
 
 int count_open_doors_in_map(t_game *game)

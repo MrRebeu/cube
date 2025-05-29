@@ -55,10 +55,10 @@ void draw_laser_line_on_column(t_game *game, int column)
     int center_y = DISPLAY_HEIGHT / 2 + game->pitch;
     
     // ✅ Dessiner 3 lignes horizontales courtes
-    int line_positions[3] = {center_y - 20, center_y, center_y + 20};
+    int line_positions[5] = {center_y - 100, center_y - 50 ,center_y, center_y + 50, center_y + 100};
     int line_width = 30; // Largeur de chaque ligne
     
-    for (int line = 0; line < 3; line++)
+    for (int line = 0; line < 5; line++)
     {
         int y = line_positions[line];
         if (y >= 0 && y < DISPLAY_HEIGHT)

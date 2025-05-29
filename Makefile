@@ -10,15 +10,16 @@ RAYCASTER_SRC = raycaster/raycasting.c raycaster/ray_utils.c
 MAP_SRC = map/file_utils.c map/map_reader.c map/map_validator.c map/player_spawn.c map/enemy_spawn.c
 PLAYER_SRC = player/player_move.c
 ENEMY_SRC = enemy/enemy_core.c enemy/enemy_ai.c enemy/enemy_animation.c enemy/enemy_render.c enemy/enemy_sprite.c
-RENDER_SRC = render/render_core.c render/render_walls.c render/render_weapons.c render/render_floor.c render/render_weapon_pickups.c
+RENDER_SRC = render/render_core.c render/render_walls.c render/render_weapons.c render/render_floor.c render/render_weapon_pickups.c 
 GNL_SRC = gnl/get_next_line.c gnl/get_next_line_utils.c
 SHOOT_SRC = shoot/shoot.c
 PORTAL_SRC = portal/portal.c
 INIT_SRC = init/init_minimap.c init/init_health_bar.c
 DOOR_SRC = door/door.c 
 LASER_SRC = laser/laser.c
+HEAL_SRC = heal/heal.c
 
-SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(ENEMY_SRC) $(SHOOT_SRC) $(PORTAL_SRC) $(UI_SRC) $(DOOR_SRC) $(LASER_SRC)
+SRCS = $(CORE_SRC) $(RAYCASTER_SRC) $(MAP_SRC) $(PLAYER_SRC) $(RENDER_SRC) $(GNL_SRC) $(ENEMY_SRC) $(SHOOT_SRC) $(PORTAL_SRC) $(UI_SRC) $(DOOR_SRC) $(LASER_SRC) $(HEAL_SRC)
 
 OBJS = $(SRCS:.c=.o)
 RM = rm -f

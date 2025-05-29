@@ -396,53 +396,54 @@ void draw_ultra_thin_door_sprite(t_game *game, t_img *sprite, t_point pos, int s
 
 void render_open_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    
-    // ✅ Position dans la cellule (0 à 64 si TILE_SIZE=64)
+    int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+    double H = renderer->wall_height;
+    int texture_y;
+
+    // Calcul tex_x normal
+    if (ray->hit_vertical)
+        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+    else
+        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+
+    // ✅ MASQUAGE ADAPTÉ À L'ORIENTATION
     double pos_in_cell;
     
     if (ray->hit_vertical)
     {
+        // ✅ Mur vertical (E/W) : utiliser la position Y
         pos_in_cell = fmod(ray->wall_hit_y, TILE_SIZE);
     }
     else
     {
+        // ✅ Mur horizontal (N/S) : utiliser la position X
         pos_in_cell = fmod(ray->wall_hit_x, TILE_SIZE);
     }
     
     if (pos_in_cell < 0) pos_in_cell += TILE_SIZE;
     
-    // ✅ Montants représentent 12.5% de chaque côté (8/64)
-    double montant_percentage = 0.125;  // 12.5%
+    // ✅ MONTANTS : 20% de chaque côté
+    double edge_size = TILE_SIZE * 0.2;
     
-    // ✅ Vérifier si on est sur un montant
-    double relative_pos = pos_in_cell / TILE_SIZE;  // 0.0 à 1.0
-    
-    if (relative_pos > montant_percentage && relative_pos < (1.0 - montant_percentage))
-        return;  // Centre vide
-    
-    // ✅ Texture coordonnée pour le montant
-    if (ray->hit_vertical)
-    {
-        renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
-        if (cos(ray->radiant_angle) > 0)
-            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
-    }
-    else
-    {
-        renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
-        if (sin(ray->radiant_angle) < 0)
-            renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
-    }
+    if (pos_in_cell > edge_size && pos_in_cell < TILE_SIZE - edge_size)
+        return; // Centre masqué
 
-    // ✅ Rendu avec couleur fixe
+    // Rendu normal
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)
     {
         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
         {
-            // Couleur marron pour les montants
-            renderer->color = 0x5D4037;
-            
+            float rel = ((renderer->y - CY) / H) + 0.5f;
+            texture_y = (int)(rel * TILE_SIZE);
+            if (texture_y < 0) texture_y = 0;
+            else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
+
+            renderer->tex_addr = game->map.door_texture.addr
+                + (texture_y * game->map.door_texture.line_length
+                + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+            renderer->color = *(unsigned int *)renderer->tex_addr;
+
             renderer->screen_pixel = game->screen.addr
                 + (renderer->y * game->screen.line_length
                 + column_x * (game->screen.bits_per_pixel / 8));
@@ -650,15 +651,13 @@ void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
         renderer->y++;
     }
 }
-
 void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {
-    // ✅ Pour les portes fermées ('D'), rendre sur TOUTE la cellule
     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
     double H = renderer->wall_height;
     int texture_y;
 
-    // ✅ Calcul tex_x normal comme pour un mur
+    // ✅ MÊME LOGIQUE que render_wall()
     if (ray->hit_vertical)
     {
         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
@@ -672,7 +671,6 @@ void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
     }
 
-    // ✅ Rendre TOUTE la colonne sans condition
     renderer->y = renderer->draw_start;
     while (renderer->y <= renderer->draw_end)
     {
@@ -683,6 +681,7 @@ void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
             if (texture_y < 0) texture_y = 0;
             else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
 
+            // ✅ SEULE DIFFÉRENCE : texture de porte au lieu de mur
             renderer->tex_addr = game->map.door_texture.addr
                 + (texture_y * game->map.door_texture.line_length
                 + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
@@ -696,6 +695,53 @@ void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
         renderer->y++;
     }
 }
+
+// RENDER DOOR CENTRE
+// void render_door(t_game *game, int column_x, t_render *renderer, t_ray *ray)
+// {
+//     // ✅ Pour les portes fermées ('D'), rendre sur TOUTE la cellule
+//     int CY = (DISPLAY_HEIGHT / 2) + game->pitch;
+//     double H = renderer->wall_height;
+//     int texture_y;
+
+//     // ✅ Calcul tex_x normal comme pour un mur
+//     if (ray->hit_vertical)
+//     {
+//         renderer->tex_x = (int)(ray->wall_hit_y) % TILE_SIZE;
+//         if (cos(ray->radiant_angle) > 0)
+//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+//     }
+//     else
+//     {
+//         renderer->tex_x = (int)(ray->wall_hit_x) % TILE_SIZE;
+//         if (sin(ray->radiant_angle) < 0)
+//             renderer->tex_x = TILE_SIZE - renderer->tex_x - 1;
+//     }
+
+//     // ✅ Rendre TOUTE la colonne sans condition
+//     renderer->y = renderer->draw_start;
+//     while (renderer->y <= renderer->draw_end)
+//     {
+//         if (renderer->y >= 0 && renderer->y < DISPLAY_HEIGHT)
+//         {
+//             float rel = ((renderer->y - CY) / H) + 0.5f;
+//             texture_y = (int)(rel * TILE_SIZE);
+//             if (texture_y < 0) texture_y = 0;
+//             else if (texture_y >= TILE_SIZE) texture_y = TILE_SIZE - 1;
+
+//             renderer->tex_addr = game->map.door_texture.addr
+//                 + (texture_y * game->map.door_texture.line_length
+//                 + renderer->tex_x * (game->map.door_texture.bits_per_pixel / 8));
+//             renderer->color = *(unsigned int *)renderer->tex_addr;
+
+//             renderer->screen_pixel = game->screen.addr
+//                 + (renderer->y * game->screen.line_length
+//                 + column_x * (game->screen.bits_per_pixel / 8));
+//             *(unsigned int *)renderer->screen_pixel = renderer->color;
+//         }
+//         renderer->y++;
+//     }
+// }
 
 void render_wall_portal(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 {

@@ -68,7 +68,15 @@ void render_weapon(t_game *game)
     if (game->map.north.ptr != NULL)
         return;
         
-    weapon = &game->weapons[game->current_weapon][game->player.weapon.frame];
+    if (game->current_weapon == HEALGUN && game->player.healgun_animating)
+    {
+        weapon = &game->healgun_frames[game->player.healgun_anim_frame];
+    }
+    else
+    {
+        // Armes normales
+        weapon = &game->weapons[game->current_weapon][game->player.weapon.frame];
+    }
     renderer.x = (DISPLAY_WIDTH - weapon->width) + 180;
     renderer.y = (DISPLAY_HEIGHT - weapon->height) + 250 + game->pitch;
     

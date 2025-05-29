@@ -7,7 +7,29 @@ void render_weapon_pickup(t_game *game, t_weapon_pickup *weapon)
     
     if (!weapon->active)
         return;
-        
+    if (weapon->weapon_type == HEALGUN)
+    {
+        // Si on a déjà le healgun, ce 'H' devient une seringue
+        if (game->player.has_weapon[HEALGUN])
+        {
+            // Changer le sprite pour une seringue
+            if (!load_weapon_pickup_sprite(game, weapon, "./texture/syringe_pickup.xpm"))
+            {
+                // Fallback si pas de sprite seringue
+                printf("Warning: syringe_pickup.xpm non trouvé\n");
+            }
+        }
+        else
+        {
+            // Garder le sprite du pistolet healgun
+            if (!weapon->sprite.ptr)
+                load_weapon_pickup_sprite(game, weapon, "./texture/healgun_pickup.xpm");
+        }
+    }
+    if (game->player.has_weapon[weapon->weapon_type])
+    {
+        return; // Arme déjà collectée, ne pas l'afficher
+    }  
     calculate_weapon_transform(game, weapon, &renderer);
     
     if (renderer.floor_y <= 0.2f)

@@ -89,6 +89,7 @@ int	render_next_frame(t_game *game)
 
 	move_player(&game->player);
 	update_all_enemies(game);
+	update_healgun_animation(game); // ✅ NOUVEAU
 	cast_all_rays(game);
 	weapon_animation(game, &anim_frames);
 	render_scene(game);

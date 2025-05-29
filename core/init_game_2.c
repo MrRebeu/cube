@@ -37,6 +37,14 @@ void	init_player(t_player *player)
     player->has_weapon[RAYGUN] = false;
     player->has_weapon[PORTALGUN] = false;
 	player->has_weapon[HEALGUN] = false;
+	player->has_weapon[HEALGUN] = false;
+	player->healgun_ammo = 0;
+    player->healgun_ammo = 0;
+    player->healgun_is_loaded = 0;
+    player->healgun_animating = 0;
+    player->healgun_anim_frame = 0;
+    player->healgun_anim_timer = 0;
+
 }
 
 void	init_rays(t_game *game)

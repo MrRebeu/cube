@@ -42,7 +42,7 @@
 #define HANDS 0
 #define PORTALGUN 1  // G dans la carte
 #define RAYGUN 2     // R dans la carte
-#define HEALGUN 3
+#define HEALGUN 3 // H sur la carte 
 #define MAX_WEAPONS 4
 
 # define TILE_SIZE 64
@@ -64,6 +64,7 @@
 
 // ========== STRUCTURES ==========
 typedef struct s_game	t_game;
+
 
 typedef struct s_laser
 {
@@ -226,6 +227,15 @@ typedef struct s_player
 	double				plane_y;
 	t_weapon_state		weapon;
 	bool				has_weapon[MAX_WEAPONS];
+	int					healgun_ammo;    
+	int healgun_heal_applied;    // Nombre de munitions
+    int healgun_is_loaded;   // 1 si chargé, 0 si vide
+    int healgun_animation;   // État de l'animation (0=rien, 1=injection)
+	int healgun_anim_state;     // 0-4 (frame actuelle)
+    int healgun_anim_timer;     // Timer pour chaque frame
+    int healgun_animating;      // 1 si en cours d'animation
+    int healgun_frame_duration;
+	int healgun_anim_frame; // Frame actuelle de l'animation
 }						t_player;
 
 typedef struct s_intersect
@@ -320,6 +330,7 @@ typedef struct s_game
     int					num_open_doors;
 	t_laser *lasers;
     int num_lasers;
+	t_img healgun_frames[4];       // Tableau des sprites d'animation
 }						t_game;
 
 typedef struct s_render
@@ -664,5 +675,14 @@ void draw_laser_lines(t_game *game, int start_col, int end_col, int top, int bot
 void render_all_lasers(t_game *game);
 int ray_crosses_laser(t_game *game, double radiant_angle);
 void draw_laser_line_on_column(t_game *game, int column);
+void use_healgun(t_game *game);
+void render_healgun_animation(t_game *game);
+void start_healgun_animation(t_game *game);
+void update_healgun_animation(t_game *game);
+int load_healgun(t_game *game);
+void use_healgun(t_game *game);
+int load_healgun_sprites(t_game *game);
+int	load_single_weapon_texture(void *mlx, t_img *tex, char *path);
+
 
 #endif

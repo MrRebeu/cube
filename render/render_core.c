@@ -35,8 +35,6 @@ void render_column(t_game *game, int column_x, t_ray *ray)
         render_shooted_open_door(game, column_x, &renderer, ray);
     else if (ray->hit_type == 'O')
         render_open_door(game, column_x, &renderer, ray);
-    // else if (ray->hit_type == 'L') // ✅ LASER par-dessus le sol/plafond
-    //     render_laser(game, column_x, &renderer, ray);
     else
         render_wall(game, column_x, &renderer, ray);
     render_floor_and_ceiling(game, column_x, &renderer);

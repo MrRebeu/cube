@@ -200,6 +200,23 @@ int mouse_button(int button, int x, int y, t_game *game)
                 calculate_shoot(game);
             }
         }
+        else if (game->current_weapon == HEALGUN)
+        {
+            // ✅ VÉRIFIER SI LE HEALGUN EST CHARGÉ
+            if (!game->player.healgun_is_loaded)
+            {
+                printf("❌ Heal Gun vide ! Trouvez des munitions.\n");
+                return 0;
+            }
+            
+            if (game->player.healgun_ammo <= 0)
+            {
+                printf("❌ Pas de munitions !\n");
+                return 0;
+            }
+            use_healgun(game);
+            start_healgun_animation(game); // ✅ DÉMARRER L'ANIMATION
+        }
     }
     else if (button == 4 || button == 5) // Scroll souris
     {

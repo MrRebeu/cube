@@ -42,7 +42,6 @@ void check_weapon_pickup(t_player *player)
 			if (!player->has_weapon[PORTALGUN])
 			{
 				player->has_weapon[PORTALGUN] = true;
-				player->game->map.matrix[player_map_y][player_map_x] = '0';
 				player->current_weapon = PORTALGUN;
 				player->game->current_weapon = PORTALGUN;
 				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
@@ -62,13 +61,30 @@ void check_weapon_pickup(t_player *player)
 		if (cell_type == 'H')
 		{
 			if (!player->has_weapon[HEALGUN])
-			{
-				player->has_weapon[HEALGUN] = true;
-				player->game->map.matrix[player_map_y][player_map_x] = '0';
-				player->current_weapon = HEALGUN;
-				player->game->current_weapon = HEALGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
-			}
+            {
+                // ✅ PREMIÈRE FOIS : collecter le pistolet
+                player->has_weapon[HEALGUN] = true;
+                player->current_weapon = HEALGUN;
+                player->game->current_weapon = HEALGUN;
+                player->healgun_ammo = 1; // Commence avec 1 munition
+                player->healgun_is_loaded = 1;
+                player->game->map.matrix[player_map_y][player_map_x] = '0'; // Enlever de la carte
+                printf("💉 HEAL GUN COLLECTÉ ! (1 munition)\n");
+            }
+            else
+            {
+                // ✅ DEUXIÈME FOIS ET + : collecter une seringue
+                player->healgun_ammo++;
+                player->game->map.matrix[player_map_y][player_map_x] = '0'; // Enlever de la carte
+                printf("💉 Seringue collectée ! (%d munitions)\n", player->healgun_ammo);
+                
+                // Si le healgun était vide, le charger
+                if (!player->healgun_is_loaded)
+                {
+                    player->healgun_is_loaded = 1;
+                    printf("🔋 Heal Gun rechargé !\n");
+                }
+            }
 		}
 	}
 }

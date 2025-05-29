@@ -409,34 +409,7 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
     h = h_intersection(game->player.x, game->player.y, radiant_angle);
 
     // ✅ FONCTION POUR AJUSTER LA POSITION DES MURS TYPE 'D'
-    auto void adjust_door_position(double *hit_x, double *hit_y, char hit_type, int is_vertical) {
-        if (hit_type != 'D' && hit_type != 'O')
-            return; // Pas un mur type D, pas d'ajustement
-        
-        double recess = TILE_SIZE * 0.5; // Recul de 30% vers le centre
-        
-        if (is_vertical) {
-            // Intersection verticale - ajuster X vers le centre
-            int cell_x = (int)(*hit_x / TILE_SIZE);
-            double cell_center_x = (cell_x * TILE_SIZE) + (TILE_SIZE / 2);
-            
-            if (*hit_x < cell_center_x) {
-                *hit_x += recess; // Reculer vers la droite
-            } else {
-                *hit_x -= recess; // Reculer vers la gauche
-            }
-        } else {
-            // Intersection horizontale - ajuster Y vers le centre
-            int cell_y = (int)(*hit_y / TILE_SIZE);
-            double cell_center_y = (cell_y * TILE_SIZE) + (TILE_SIZE / 2);
-            
-            if (*hit_y < cell_center_y) {
-                *hit_y += recess; // Reculer vers le bas
-            } else {
-                *hit_y -= recess; // Reculer vers le haut
-            }
-        }
-    }
+    
 
     // Raycasting vertical
     iter = 0;
@@ -463,9 +436,8 @@ double ray_casting(t_game *game, double radiant_angle, int column_x)
     // ✅ AJUSTER LES POSITIONS POUR LES MURS TYPE 'D'
     hit_type_v = get_hit_type(&game->map, v.x, v.y);
     hit_type_h = get_hit_type(&game->map, h.x, h.y);
-    
-    adjust_door_position(&v.x, &v.y, hit_type_v, 1); // 1 = vertical
-    adjust_door_position(&h.x, &h.y, hit_type_h, 0); // 0 = horizontal
+    // adjust_door_position(&v.x, &v.y, hit_type_v, 1); // 1 = vertical
+    // adjust_door_position(&h.x, &h.y, hit_type_h, 0); // 0 = horizontal
 
     // Recalculer les distances après ajustement
     dist_v = sqrt(pow(v.x - game->player.x, 2) + pow(v.y - game->player.y, 2));

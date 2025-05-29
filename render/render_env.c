@@ -76,6 +76,14 @@ void render_weapon(t_game *game)
                     game->player.weapon.is_firing = 0;
                 }
             }
+            if (game->player.healgun_animation && game->player.healgun_anim_timer > 0)
+            {
+                render_healgun_animation(game);
+                game->player.healgun_anim_timer--;
+                
+                if (game->player.healgun_anim_timer <= 0)
+                    game->player.healgun_animation = 0;
+            }
         }
     }
     /* Draw weapon image pixel by pixel */

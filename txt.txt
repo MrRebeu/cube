@@ -1,8 +1,2 @@
-🚪 Porte ouverte initialisée à [2,13] -> (160.0, 864.0)
-No enemy found in map🚪 Fermeture de la porte à [2,13]
-🚪 Ouverture de la porte à [2,13]
-🚪 Fermeture de la porte à [2,13]
-🚪 Ouverture de la porte à [2,13]
-🚪 Fermeture de la porte à [2,13]
-🚪 Ouverture de la porte à [2,13]
-🚪 Fermeture de la porte à [2,13]
+Warning: healgun_pickup.xpm non trouvé
+No enemy found in map
