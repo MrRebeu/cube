@@ -230,7 +230,6 @@ typedef struct s_player
 	int					healgun_ammo;    
 	int healgun_heal_applied;    // Nombre de munitions
     int healgun_is_loaded;   // 1 si chargé, 0 si vide
-    int healgun_animation;   // État de l'animation (0=rien, 1=injection)
 	int healgun_anim_state;     // 0-4 (frame actuelle)
     int healgun_anim_timer;     // Timer pour chaque frame
     int healgun_animating;      // 1 si en cours d'animation
@@ -330,7 +329,7 @@ typedef struct s_game
     int					num_open_doors;
 	t_laser *lasers;
     int num_lasers;
-	t_img healgun_frames[4];       // Tableau des sprites d'animation
+	t_img healgun_frames[5];       // Tableau des sprites d'animation
 }						t_game;
 
 typedef struct s_render
