@@ -9,7 +9,7 @@
 void render_ceiling(t_game *game, int column_x, t_render *renderer)
 {
     int y = 0;
-    unsigned int ceiling_color = 0x777777;
+    unsigned int ceiling_color = 0xc8b06e;
 
     while (y < renderer->draw_start)
     {
@@ -23,7 +23,7 @@ void render_ceiling(t_game *game, int column_x, t_render *renderer)
 void render_floor_section(t_game *game, int column_x, t_render *renderer)
 {
     int y = renderer->draw_end + 1;
-    unsigned int floor_color = 0x444444;
+    unsigned int floor_color = 0x394156;
 
     while (y < DISPLAY_HEIGHT)
     {

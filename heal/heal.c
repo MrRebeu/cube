@@ -101,7 +101,7 @@ void update_healgun_animation(t_game *game)
         game->player.healgun_anim_frame++;
         
         // Durées différentes pour chaque frame
-        int frame_durations[5] = {10, 15, 20, 15, 10};
+        int frame_durations[5] = {4, 6, 10, 6, 4};
         
         if (game->player.healgun_anim_frame >= 5)
         {

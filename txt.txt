@@ -5,7 +5,7 @@
 ✅ Chargé: ./texture/healgun_4.xpm
 Warning: healgun_pickup.xpm non trouvé
 Warning: healgun_pickup.xpm non trouvé
-No enemy found in map✅ Arme désactivée: type=3 à [7,15]
+✅ Arme désactivée: type=3 à [7,15]
 💉 HEAL GUN COLLECTÉ ! (1 munition)
 💉 Heal Gun utilisé ! Santé: 100, Munitions: 0
 🎬 Rendu frame 0
@@ -24,46 +24,28 @@ No enemy found in map✅ Arme désactivée: type=3 à [7,15]
 🎬 Rendu frame 1
 🎬 Rendu frame 1
 🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
 💉 Frame healgun: 2
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 💉 Frame healgun: 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
 🎬 Rendu frame 3
 🎬 Rendu frame 3
 🎬 Rendu frame 3
@@ -75,13 +57,8 @@ No enemy found in map✅ Arme désactivée: type=3 à [7,15]
 🎬 Rendu frame 4
 🎬 Rendu frame 4
 🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
 ✅ Animation Heal Gun terminée !
+✅ Arme désactivée: type=3 à [8,13]
 💉 Seringue collectée ! (1 munitions)
 🔋 Heal Gun rechargé !
 💉 Heal Gun utilisé ! Santé: 100, Munitions: 0
@@ -101,46 +78,28 @@ No enemy found in map✅ Arme désactivée: type=3 à [7,15]
 🎬 Rendu frame 1
 🎬 Rendu frame 1
 🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
-🎬 Rendu frame 1
 💉 Frame healgun: 2
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
-🎬 Rendu frame 2
+📍 healgun_2 affiché plus bas
 💉 Frame healgun: 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
-🎬 Rendu frame 3
 🎬 Rendu frame 3
 🎬 Rendu frame 3
 🎬 Rendu frame 3
@@ -152,10 +111,15 @@ No enemy found in map✅ Arme désactivée: type=3 à [7,15]
 🎬 Rendu frame 4
 🎬 Rendu frame 4
 🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
-🎬 Rendu frame 4
 ✅ Animation Heal Gun terminée !
+🚪 Ouverture de la porte à [2,13]
+✅ Arme désactivée: type=1 à [1,12]
+Portal 1 créé à [6, 0], orientation: Sud
+Portal 2 créé à [4, 11], orientation: Est
+🔍 DEBUG: Portail utilisé [4,11]
+🔍 DEBUG: Portal_1 à [6,0], orientation: 2
+🔍 DEBUG: Portal_2 à [4,11], orientation: 1
+✅ Utilise Portal_2 → Destination Portal_1
+Portail dest orienté: Sud → Sortie par: Nord
+🔄 Sortie alternative
+✅ Arme désactivée: type=2 à [5,6]

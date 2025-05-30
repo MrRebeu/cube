@@ -14,58 +14,59 @@
 
 void check_weapon_pickup(t_player *player)
 {
-	int player_map_x;
-	int player_map_y;
-	char cell_type;
+    int player_map_x;
+    int player_map_y;
+    char cell_type;
 
-	if (!player->game)
-		return;
-	player_map_x = (int)(player->x / TILE_SIZE);
-	player_map_y = (int)(player->y / TILE_SIZE);
-	if (player_map_x >= 0 && player_map_x < player->game->map.width &&
+    if (!player->game)
+        return;
+    player_map_x = (int)(player->x / TILE_SIZE);
+    player_map_y = (int)(player->y / TILE_SIZE);
+    if (player_map_x >= 0 && player_map_x < player->game->map.width &&
         player_map_y >= 0 && player_map_y < player->game->map.height)
-	{
-		cell_type = player->game->map.matrix[player_map_y][player_map_x];
-		if (cell_type == 'R')
-		{
-			if (!player->has_weapon[RAYGUN])
-			{
-				player->has_weapon[RAYGUN] = true;
-				player->game->map.matrix[player_map_y][player_map_x] = '0';
-				player->current_weapon = RAYGUN;
-				player->game->current_weapon = RAYGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, RAYGUN);
-			}
-		}
-		if (cell_type == 'G')
-		{
-			if (!player->has_weapon[PORTALGUN])
-			{
-				player->has_weapon[PORTALGUN] = true;
-				player->current_weapon = PORTALGUN;
-				player->game->current_weapon = PORTALGUN;
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, PORTALGUN);
-			}
-		}
-		if (cell_type == 'H')
-		{
-			if (!player->has_weapon[HEALGUN])
+    {
+        cell_type = player->game->map.matrix[player_map_y][player_map_x];
+        if (cell_type == 'R')
+        {
+            if (!player->has_weapon[RAYGUN])
+            {
+                player->has_weapon[RAYGUN] = true;
+                player->game->map.matrix[player_map_y][player_map_x] = '0';
+                player->current_weapon = RAYGUN;
+                player->game->current_weapon = RAYGUN;
+                disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, RAYGUN);
+            }
+        }
+        if (cell_type == 'G')
+        {
+            if (!player->has_weapon[PORTALGUN])
+            {
+                player->has_weapon[PORTALGUN] = true;
+                player->current_weapon = PORTALGUN;
+                player->game->current_weapon = PORTALGUN;
+                disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, PORTALGUN);
+            }
+        }
+        if (cell_type == 'H')
+        {
+            if (!player->has_weapon[HEALGUN])
             {
                 // ✅ PREMIÈRE FOIS : collecter le pistolet
                 player->has_weapon[HEALGUN] = true;
                 player->current_weapon = HEALGUN;
                 player->game->current_weapon = HEALGUN;
-                player->healgun_ammo = 1; // Commence avec 1 munition
+                player->healgun_ammo = 1;
                 player->healgun_is_loaded = 1;
-                player->game->map.matrix[player_map_y][player_map_x] = '0';
-				disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
+                player->game->map.matrix[player_map_y][player_map_x] = '0'; // ← SUPPRIMER LE 'H'
+                disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
                 printf("💉 HEAL GUN COLLECTÉ ! (1 munition)\n");
             }
             else
             {
                 // ✅ DEUXIÈME FOIS ET + : collecter une seringue
                 player->healgun_ammo++;
-                player->game->map.matrix[player_map_y][player_map_x] = '0'; // Enlever de la carte
+                player->game->map.matrix[player_map_y][player_map_x] = '0'; // ← SUPPRIMER LE 'H'
+                disable_weapon_pickup_at_position(player->game, player_map_x, player_map_y, HEALGUN);
                 printf("💉 Seringue collectée ! (%d munitions)\n", player->healgun_ammo);
                 
                 // Si le healgun était vide, le charger
@@ -75,8 +76,8 @@ void check_weapon_pickup(t_player *player)
                     printf("🔋 Heal Gun rechargé !\n");
                 }
             }
-		}
-	}
+        }
+    }
 }
 
 int	key_release(int keycode, t_player *player)

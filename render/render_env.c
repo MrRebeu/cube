@@ -304,7 +304,7 @@ void render_wall(t_game *game, int column_x, t_render *renderer, t_ray *ray)
 void render_floor(t_game *game, int column_x, t_render *renderer)
 {
     int y;
-    unsigned int floor_color = 0x444444;
+    unsigned int floor_color = 0xd8a85a;
     unsigned int ceiling_color = 0x777777;
 
     y = 0;

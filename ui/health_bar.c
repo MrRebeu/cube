@@ -63,7 +63,7 @@ void draw_health_bar_fill(t_game *game)
 {
     t_health_bar *life_bar = &game->health_bar;
     int max_health = 100;
-    int current_health = game->player.health - 50;
+    int current_health = game->player.health;
     int inner_width, filled_width;
     int x, y;
     char *pixel;
