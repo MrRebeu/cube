@@ -1,23 +1,4 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   game_loop.c                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: tcaccava <tcaccava@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/26 20:17:11 by tcaccava          #+#    #+#             */
-/*   Updated: 2025/05/26 20:52:18 by tcaccava         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "cube3d.h"
-
-int	close_window(void *param)
-{
-	(void)param;
-	exit(0);
-	return (0);
-}
 
 static void	update_all_enemies(t_game *game)
 {
@@ -71,16 +52,17 @@ static void	weapon_animation(t_game *game, int *anim_frames)
 		game->player.fire_cooldown--;
 }
 
-void render_next_frame_weapons(t_game *game)
+void	render_next_frame_weapons(t_game *game)
 {
-    int i = 0;
-    
-    while (i < game->num_weapon_pickup)
-    {
-        if (game->weapon_pickup[i].active)
-            render_weapon_pickup(game, &game->weapon_pickup[i]);
-        i++;
-    }
+	int	i;
+
+	i = 0;
+	while (i < game->num_weapon_pickup)
+	{
+		if (game->weapon_pickup[i].active)
+			render_weapon_pickup(game, &game->weapon_pickup[i]);
+		i++;
+	}
 }
 
 int	render_next_frame(t_game *game)
@@ -89,7 +71,7 @@ int	render_next_frame(t_game *game)
 
 	move_player(&game->player);
 	update_all_enemies(game);
-	update_healgun_animation(game); // ✅ NOUVEAU
+	update_healgun_animation(game);
 	cast_all_rays(game);
 	weapon_animation(game, &anim_frames);
 	render_scene(game);
